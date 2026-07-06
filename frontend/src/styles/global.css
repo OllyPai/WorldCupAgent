@@ -1,0 +1,213 @@
+:root {
+  --bg: #0b1220;
+  --bg-soft: #0f172a;
+  --surface: rgba(17, 28, 46, 0.9);
+  --surface-strong: #111c2e;
+  --surface-hover: #162235;
+  --surface-alt: rgba(22, 34, 53, 0.94);
+  --text-main: #e5e7eb;
+  --text-body: #cbd5e1;
+  --text-soft: #94a3b8;
+  --text-weak: #64748b;
+  --line: #23314a;
+  --line-strong: #2a3a55;
+  --green-main: #22c55e;
+  --green-deep: #16a34a;
+  --green-soft: #86efac;
+  --blue-main: #38bdf8;
+  --blue-soft: #7dd3fc;
+  --purple-main: #8b5cf6;
+  --red-main: #ef4444;
+  --gold-main: #f8d66d;
+  --shadow-strong: 0 24px 60px rgba(0, 0, 0, 0.36);
+  --page-radial-1: rgba(56, 189, 248, 0.18);
+  --page-radial-2: rgba(34, 197, 94, 0.18);
+  --page-radial-3: rgba(139, 92, 246, 0.12);
+  --page-overlay-1: rgba(56, 189, 248, 0.08);
+  --page-overlay-2: rgba(34, 197, 94, 0.08);
+  --header-bg: rgba(11, 18, 32, 0.88);
+  --metric-bg: rgba(22, 34, 53, 0.72);
+  --goal-pill-bg: rgba(22, 34, 53, 0.78);
+  --card-bg: rgba(22, 34, 53, 0.76);
+  --panel-strong-bg: rgba(11, 18, 32, 0.82);
+  --panel-stronger-bg: rgba(11, 18, 32, 0.92);
+  --input-bg: rgba(17, 28, 46, 0.92);
+  --hero-copy-bg:
+    radial-gradient(circle at top left, rgba(56, 189, 248, 0.14), transparent 34%),
+    linear-gradient(145deg, rgba(17, 28, 46, 0.98), rgba(11, 18, 32, 0.95));
+  --hero-scoreboard-bg:
+    radial-gradient(circle at top right, rgba(34, 197, 94, 0.18), transparent 30%),
+    radial-gradient(circle at bottom left, rgba(56, 189, 248, 0.14), transparent 26%),
+    linear-gradient(150deg, rgba(17, 28, 46, 0.98), rgba(11, 18, 32, 0.94));
+  --section-bg: linear-gradient(180deg, rgba(17, 28, 46, 0.96), rgba(11, 18, 32, 0.98));
+  --accent-section-bg:
+    radial-gradient(circle at left center, rgba(56, 189, 248, 0.16), transparent 26%),
+    radial-gradient(circle at right center, rgba(34, 197, 94, 0.14), transparent 24%),
+    linear-gradient(180deg, rgba(22, 34, 53, 0.98), rgba(11, 18, 32, 0.98));
+  --btn-surface-bg: rgba(11, 18, 32, 0.75);
+  --btn-surface-hover-bg: rgba(22, 34, 53, 0.92);
+  --query-hover-bg: linear-gradient(90deg, rgba(56, 189, 248, 0.18), rgba(34, 197, 94, 0.12));
+  --answer-question-bg: rgba(56, 189, 248, 0.08);
+  --answer-question-border: rgba(56, 189, 248, 0.22);
+  --answer-box-bg: linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(56, 189, 248, 0.14));
+  --answer-box-border: rgba(56, 189, 248, 0.15);
+  --trace-icon-bg: linear-gradient(135deg, rgba(56, 189, 248, 0.28), rgba(139, 92, 246, 0.22));
+  --chat-user-bubble-bg: linear-gradient(135deg, rgba(34, 197, 94, 0.16), rgba(56, 189, 248, 0.12));
+}
+
+:root[data-theme="light"] {
+  --bg: #f4f8fb;
+  --bg-soft: #e9f0f7;
+  --surface: rgba(255, 255, 255, 0.9);
+  --surface-strong: #ffffff;
+  --surface-hover: #eef4fb;
+  --surface-alt: rgba(255, 255, 255, 0.94);
+  --text-main: #0f172a;
+  --text-body: #1e293b;
+  --text-soft: #475569;
+  --text-weak: #64748b;
+  --line: #cbd5e1;
+  --line-strong: #b8c7db;
+  --shadow-strong: 0 18px 44px rgba(15, 23, 42, 0.1);
+  --page-radial-1: rgba(56, 189, 248, 0.16);
+  --page-radial-2: rgba(34, 197, 94, 0.12);
+  --page-radial-3: rgba(139, 92, 246, 0.1);
+  --page-overlay-1: rgba(56, 189, 248, 0.06);
+  --page-overlay-2: rgba(34, 197, 94, 0.05);
+  --header-bg: rgba(255, 255, 255, 0.82);
+  --metric-bg: rgba(255, 255, 255, 0.74);
+  --goal-pill-bg: rgba(248, 250, 252, 0.92);
+  --card-bg: rgba(255, 255, 255, 0.78);
+  --panel-strong-bg: rgba(248, 250, 252, 0.92);
+  --panel-stronger-bg: rgba(255, 255, 255, 0.95);
+  --input-bg: rgba(255, 255, 255, 0.95);
+  --hero-copy-bg:
+    radial-gradient(circle at top left, rgba(56, 189, 248, 0.16), transparent 34%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(244, 248, 251, 0.96));
+  --hero-scoreboard-bg:
+    radial-gradient(circle at top right, rgba(34, 197, 94, 0.16), transparent 30%),
+    radial-gradient(circle at bottom left, rgba(56, 189, 248, 0.13), transparent 26%),
+    linear-gradient(150deg, rgba(255, 255, 255, 0.98), rgba(239, 244, 251, 0.96));
+  --section-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 248, 251, 0.98));
+  --accent-section-bg:
+    radial-gradient(circle at left center, rgba(56, 189, 248, 0.12), transparent 26%),
+    radial-gradient(circle at right center, rgba(34, 197, 94, 0.1), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(239, 244, 251, 0.98));
+  --btn-surface-bg: rgba(255, 255, 255, 0.88);
+  --btn-surface-hover-bg: rgba(238, 244, 251, 0.96);
+  --query-hover-bg: linear-gradient(90deg, rgba(56, 189, 248, 0.12), rgba(34, 197, 94, 0.08));
+  --answer-question-bg: rgba(56, 189, 248, 0.1);
+  --answer-question-border: rgba(56, 189, 248, 0.2);
+  --answer-box-bg: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(56, 189, 248, 0.12));
+  --answer-box-border: rgba(56, 189, 248, 0.18);
+  --trace-icon-bg: linear-gradient(135deg, rgba(56, 189, 248, 0.18), rgba(139, 92, 246, 0.16));
+  --chat-user-bubble-bg: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(56, 189, 248, 0.09));
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background:
+    radial-gradient(circle at 14% 12%, var(--page-radial-1), transparent 24%),
+    radial-gradient(circle at 84% 10%, var(--page-radial-2), transparent 22%),
+    radial-gradient(circle at 70% 76%, var(--page-radial-3), transparent 20%),
+    var(--bg);
+  color: var(--text-main);
+  font-family: "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+body,
+#root,
+.page-background,
+.app-header,
+.hero-copy,
+.hero-scoreboard,
+.section-shell,
+.site-footer,
+.schedule-card.ant-card,
+.hot-match-card.ant-card,
+.query-choice-card.ant-card,
+.query-answer-card.ant-card,
+.agent-step-card.ant-card,
+.agent-detail-card.ant-card,
+.query-topbar,
+.query-chat-card.ant-card,
+.query-result-card.ant-card,
+.trace-inspector-card.ant-card,
+.hero-metrics > div,
+.goal-pill,
+.trace-step-box,
+.chat-bubble,
+.composer-wrap,
+.score-result-main,
+.score-stat-item,
+.event-card,
+.recommend-card,
+.trace-summary-item,
+.trace-code-block,
+.ant-btn,
+.ant-input,
+.ant-input-outlined,
+.ant-card,
+.ant-tag {
+  transition:
+    background 0.35s ease,
+    background-color 0.35s ease,
+    color 0.25s ease,
+    border-color 0.35s ease,
+    box-shadow 0.35s ease,
+    transform 0.25s ease;
+}
+
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  height: 44px;
+  padding: 0;
+  font-size: 20px;
+  background: var(--btn-surface-bg);
+  border-color: var(--line);
+  color: var(--text-main);
+}
+
+.theme-toggle-btn:hover,
+.theme-toggle-btn:focus {
+  background: var(--btn-surface-hover-bg) !important;
+  color: var(--blue-soft) !important;
+  border-color: var(--line-strong) !important;
+  transform: translateY(-1px);
+}
+
+.theme-toggle-glyph {
+  display: inline-flex;
+  transition: transform 0.35s ease;
+}
+
+:root[data-theme="light"] .theme-toggle-glyph {
+  transform: rotate(18deg) scale(1.06);
+}
