@@ -107,7 +107,10 @@ result = chat_with_agent(
 }
 ```
 
-更多前端对接说明见 `docs/agent-handoff.md`。
+更多前端对接说明见：
+
+- `docs/agent-handoff.md`
+- `docs/frontend-ai-integration-guide.md`
 
 ## 项目结构
 
@@ -118,6 +121,7 @@ tools/                    # 三个工具与 SQLite 数据库
 tests/test_minimal_agent.py
 docs/team-alignment.md    # 小组接口与协作基线
 docs/agent-handoff.md     # 前端对接说明
+docs/frontend-ai-integration-guide.md
 task_plan.md              # 项目计划
 progress.md               # 进度日志
 findings.md               # 发现与决策
