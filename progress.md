@@ -2,10 +2,10 @@
 
 ## 当前状态（2026-07-07）
 
-- **当前阶段：** 阶段 3——Agent 正确性与核心测试
-- **分支：** `zheng/agent-core`
-- **工作区：** 核心代码、测试、工具和规划文件已有本地里程碑提交；仍存在未跟踪的 `docs/`、`output/`、`tmp/`
-- **外部依赖变化：** 队友工具 PR #2 已合并到 GitHub `main`；你的 Agent 核心 draft PR #3 已创建。
+- **当前阶段：** 阶段 5——Web 联调
+- **分支：** `zheng/api-adapter`
+- **工作区：** 正在实现 FastAPI HTTP 适配层；仍存在未跟踪的 `docs/proposal-report.md`、`output/`、`tmp/`
+- **外部依赖变化：** 队友工具 PR #2 和 Agent 核心 PR #3 均已合并到 GitHub `main`。
 
 ## 已完成记录
 
@@ -59,9 +59,8 @@
 ### GitHub 协作状态
 
 - PR #2 `tools` 已合并到 `main`。
-- 当前分支 `zheng/agent-core` 已推送到远端。
-- Draft PR #3 已创建：`https://github.com/OllyPai/WorldCupAgent/pull/3`
-- PR #3 当前状态：`MERGEABLE / CLEAN`，文件范围为 Agent 核心、测试和规划文件。
+- PR #3 Agent 核心已合并到 `main`。
+- 当前分支为 `zheng/api-adapter`，用于前端 HTTP API 适配。
 
 ### 阶段 5/6：前端交接与启动文档
 
@@ -69,7 +68,18 @@
 - 已重写 `docs/agent-handoff.md`，移除旧版错误信息，改为当前 `chat_with_agent()` 接口说明。
 - 已新增 `README.md`，包含环境准备、运行、测试和接口示例。
 - 已新增 `.env.example`，说明 `DEEPSEEK_API_KEY`。
-- 已新增 `requirements.txt`，列出当前核心依赖和后续 Streamlit 前端依赖。
+- 已新增 `requirements.txt`，列出当前核心依赖和 FastAPI HTTP 适配层依赖。
+
+### 阶段 5B：FastAPI 适配层
+
+- **状态：** in_progress
+- 读取前端契约 `/Users/oripi/Library/Containers/com.tencent.qq/Data/Downloads/frontend-api-contract.md`。
+- 确认前端是 React/JS 方向，不能直接 import Python 函数。
+- 删除未提交的 Streamlit 最小页尝试，改为 FastAPI HTTP 适配层。
+- 新增 `backend/app.py`，提供 `GET /api/health` 和 `POST /api/chat`。
+- `POST /api/chat` 接收 `user_input/history`，内部调用 `chat_with_agent()`。
+- API 响应包含 `answer/tool_calls/error/result_payload`，其中 `result_payload` 当前为 `null`。
+- API 层将 Agent 内部工具状态 `error` 映射成前端契约中的 `failed`。
 
 ## 测试结果
 
@@ -89,6 +99,10 @@
 | 2026-07-07 | 真实比赛详情冒烟 | 正确调用 `query_match_detail`；初次出现“晋级下一轮”推断，改为代码格式化后只展示比赛字段 | 通过 |
 | 2026-07-07 | 真实直接问候冒烟 | 未调用工具，返回能力说明 | 通过 |
 | 2026-07-07 | 真实工具错误冒烟 | 不存在球员返回 `tool_calls[0].status == error` 和可展示错误信息 | 通过 |
+| 2026-07-07 | `.venv/bin/python -m pytest -q` | 13 passed, 1 FastAPI TestClient 上游弃用警告 | 通过 |
+| 2026-07-07 | `.venv/bin/python -m py_compile agent.py backend/app.py tools/*.py test_tools.py` | 无输出 | 通过 |
+| 2026-07-07 | `curl http://127.0.0.1:8000/api/health` | `{"status":"ok"}` | 通过 |
+| 2026-07-07 | `POST /api/chat` 真实冒烟 | HTTP 层、Agent 层、工具层完整打通，返回前端契约 | 通过 |
 
 ## 错误日志
 
@@ -99,14 +113,15 @@
 | 2026-07-06 | 测试收集时无法导入尚未实现的 `chat_with_agent` | 1 | 完成入口实现后 5 条测试通过 |
 | 2026-07-06 | 模型回答包含工具外事实 | 2 | Prompt 约束不足，改为工具型问题由代码格式化最终回答 |
 | 2026-07-07 | `git merge --no-commit --no-ff origin/feat/tools-data` 被沙盒禁止写 `.git/ORIG_HEAD.lock` | 1 | 授权后重试同一命令成功 |
+| 2026-07-07 | `.venv/bin/streamlit` 不存在 | 1 | 结合前端契约判断不应继续 Streamlit，改做 FastAPI |
 
 ## 下一工作块
 
-1. 等待或执行 PR #3 review/merge；
-2. 用户复述 `main → chat_with_agent → Agent → Tool → 统一结果` 数据流；
-3. 与前端负责人确认最小 Web 调用方式；
-4. 开始 Web 联调；
-5. 准备用户复述和答辩用的 Agent 数据流解释。
+1. 提交并推送 `zheng/api-adapter`；
+2. 创建 API 适配层 PR；
+3. 把 `/api/chat` 契约发给前端队友接入；
+4. 与前端完成浏览器端真实联调；
+5. 用户复述 `React → FastAPI → chat_with_agent → Agent → Tool → response` 数据流。
 
 ## 学习证据
 
@@ -115,6 +130,7 @@
 - 统一入口和测试由 AI 提供主要实现，当前应记为“已接触、可在指导下理解”，尚未独立掌握。
 - 已看到多人协作下“工具层 PR → Agent 集成验证 → 测试保护接口”的基本流程。
 - 当前必须理解的新点：LLM 不适合负责严格事实边界；工具型回答用代码格式化更稳定。
+- 当前必须理解的新点：React 前端和 Python Agent 之间需要 HTTP API 边界。
 - 下一检查点：用户能够不用解释语法，复述 `main → chat_with_agent → Agent → Tool → 统一结果` 的数据流。
 
 ## 五问重启检查
