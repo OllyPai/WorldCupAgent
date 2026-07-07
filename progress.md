@@ -5,7 +5,7 @@
 - **当前阶段：** 阶段 5——Web 联调
 - **分支：** `zheng/api-adapter`
 - **工作区：** 正在完善 FastAPI HTTP 适配层和前端接入说明；仍存在未跟踪的 `docs/proposal-report.md`、`output/`、`tmp/`
-- **外部依赖变化：** 队友工具 PR #2 和 Agent 核心 PR #3 均已合并到 GitHub `main`。
+- **外部依赖变化：** 队友工具 PR #2 和 Agent 核心 PR #3 均已合并到 GitHub `main`；API 适配 PR #4 已转为 ready for review，当前可合并。
 
 ## 已完成记录
 
@@ -60,6 +60,7 @@
 
 - PR #2 `tools` 已合并到 `main`。
 - PR #3 Agent 核心已合并到 `main`。
+- PR #4 API 适配已推送到 `zheng/api-adapter` 并转为 ready for review，当前 GitHub 显示可合并。
 - 当前分支为 `zheng/api-adapter`，用于前端 HTTP API 适配。
 
 ### 阶段 5/6：前端交接与启动文档
