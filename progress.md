@@ -3,9 +3,9 @@
 ## 当前状态（2026-07-07）
 
 - **当前阶段：** 阶段 5——Web 联调
-- **分支：** `zheng/api-adapter`
-- **工作区：** 正在完善 FastAPI HTTP 适配层和前端接入说明；仍存在未跟踪的 `docs/proposal-report.md`、`output/`、`tmp/`
-- **外部依赖变化：** 队友工具 PR #2 和 Agent 核心 PR #3 均已合并到 GitHub `main`；API 适配 PR #4 已转为 ready for review，当前可合并。
+- **分支：** `main`
+- **工作区：** API 适配层已合并到主分支；仍存在未跟踪的 `docs/proposal-report.md`、`output/`、`tmp/`
+- **外部依赖变化：** 队友工具 PR #2、Agent 核心 PR #3 和 API 适配 PR #4 均已合并到 GitHub `main`。
 
 ## 已完成记录
 
@@ -60,8 +60,8 @@
 
 - PR #2 `tools` 已合并到 `main`。
 - PR #3 Agent 核心已合并到 `main`。
-- PR #4 API 适配已推送到 `zheng/api-adapter` 并转为 ready for review，当前 GitHub 显示可合并。
-- 当前分支为 `zheng/api-adapter`，用于前端 HTTP API 适配。
+- PR #4 API 适配已合并到 `main`。
+- 当前分支为 `main`，前端可以直接基于主分支接入 `/api/chat`。
 
 ### 阶段 5/6：前端交接与启动文档
 
@@ -109,6 +109,9 @@
 | 2026-07-07 | `.venv/bin/python -m pytest -q` | 14 passed, 1 FastAPI TestClient 上游弃用警告 | 通过 |
 | 2026-07-07 | `.venv/bin/python -m py_compile agent.py backend/app.py tools/*.py test_tools.py` | 无输出 | 通过 |
 | 2026-07-07 | `git diff --check` | 无输出 | 通过 |
+| 2026-07-07 | 合并 PR #4 后 `.venv/bin/python -m pytest -q` | 14 passed, 1 FastAPI TestClient 上游弃用警告 | 通过 |
+| 2026-07-07 | 合并 PR #4 后 `.venv/bin/python -m py_compile agent.py backend/app.py tools/*.py test_tools.py` | 无输出 | 通过 |
+| 2026-07-07 | 合并 PR #4 后 `git diff --check` | 无输出 | 通过 |
 
 ## 错误日志
 
@@ -123,9 +126,9 @@
 
 ## 下一工作块
 
-1. 提交并推送本次 API/文档小改动到 `zheng/api-adapter`；
-2. 把 `/api/chat` 契约发给前端队友接入；
-3. 与前端完成浏览器端真实联调；
+1. 把 `/api/chat` 契约发给前端队友接入；
+2. 与前端完成浏览器端真实联调；
+3. 汇总系统测试用例和缺陷记录；
 4. 用户复述 `React → FastAPI → chat_with_agent → Agent → Tool → response` 数据流。
 
 ## 学习证据

@@ -87,7 +87,7 @@
 - 仓库：`https://github.com/OllyPai/WorldCupAgent`
 - 队友工具 PR：`https://github.com/OllyPai/WorldCupAgent/pull/2`（已合并）
 - Agent 核心 PR：`https://github.com/OllyPai/WorldCupAgent/pull/3`（已合并）
-- API 适配 PR：`https://github.com/OllyPai/WorldCupAgent/pull/4`（ready for review，当前可合并）
+- API 适配 PR：`https://github.com/OllyPai/WorldCupAgent/pull/4`（已合并）
 - 协作基线：`docs/team-alignment.md`
 - 前端交接：`docs/agent-handoff.md`
 - 启动说明：`README.md`
