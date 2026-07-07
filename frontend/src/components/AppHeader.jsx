@@ -19,8 +19,8 @@ function AppHeader() {
       </div>
 
       <nav className="header-nav">
-        <a href="#today">今日赛程</a>
-        <a href="#featured">热门赛事</a>
+        <a href="#today">演示赛程</a>
+        <a href="#featured">示例赛事</a>
         <a href="#query">快捷查询</a>
         <a href="#agent">智能体流程</a>
       </nav>
@@ -35,7 +35,7 @@ function AppHeader() {
           icon={<TrophyOutlined />}
           onClick={() => navigate("/query?case=query-04")}
         >
-          查看焦点战
+          查看示例比赛
         </Button>
         <Button
           type="primary"

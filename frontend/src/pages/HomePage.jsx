@@ -47,12 +47,12 @@ function HomePage() {
         <section className="section-shell" id="today">
           <div className="section-title-row">
             <div className="section-headline">
-              <span className="section-kicker">今日比赛</span>
-              <h2>今日赛程一眼看清</h2>
-              <p>先让用户看到信息密度，再让他进入智能查询。</p>
+              <span className="section-kicker">演示赛程</span>
+              <h2>本地赛程记录一眼看清</h2>
+              <p>首页展示的是本地 SQLite 课程演示库记录，真实查询请进入智能查询页。</p>
             </div>
-            <Tag color="green" className="section-tag">
-              实时状态 + 比分 + 场馆
+            <Tag color="blue" className="section-tag">
+              本地演示数据 + 工具查询入口
             </Tag>
           </div>
 
@@ -62,9 +62,9 @@ function HomePage() {
         <section className="section-shell" id="featured">
           <div className="section-title-row">
             <div className="section-headline">
-              <span className="section-kicker">焦点赛事</span>
-              <h2>深蓝黑底上的焦点赛事卡片</h2>
-              <p>这里强调热点、比分和比赛气氛，做出赛事首页的张力。</p>
+              <span className="section-kicker">示例赛事</span>
+              <h2>用于演示的赛事卡片</h2>
+              <p>这里展示本地库中的代表性比赛，避免误标为官方实时赛况。</p>
             </div>
             <Button
               type="default"
@@ -87,7 +87,7 @@ function HomePage() {
             <div className="section-headline">
               <span className="section-kicker">自然语言查询</span>
               <h2>首页直接体现“能查什么”</h2>
-              <p>先用示例问题做出交互感，后续再接真实的查询页和后端接口。</p>
+              <p>示例问题与后端工具能力保持一致：赛程、球员数据、比赛详情。</p>
             </div>
             <Tag color="cyan" icon={<ThunderboltOutlined />}>
               先查后聊

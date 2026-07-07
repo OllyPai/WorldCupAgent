@@ -6,18 +6,26 @@ import {
 } from "./homeMock";
 
 const teamMeta = {
-  阿根廷: { flag: "🇦🇷", code: "ARG" },
-  法国: { flag: "🇫🇷", code: "FRA" },
   巴西: { flag: "🇧🇷", code: "BRA" },
-  西班牙: { flag: "🇪🇸", code: "ESP" },
-  德国: { flag: "🇩🇪", code: "GER" },
+  挪威: { flag: "🇳🇴", code: "NOR" },
   葡萄牙: { flag: "🇵🇹", code: "POR" },
+  西班牙: { flag: "🇪🇸", code: "ESP" },
+  阿根廷: { flag: "🇦🇷", code: "ARG" },
+  佛得角: { flag: "🇨🇻", code: "CPV" },
+  埃及: { flag: "🇪🇬", code: "EGY" },
+  摩洛哥: { flag: "🇲🇦", code: "MAR" },
+  海地: { flag: "🇭🇹", code: "HAI" },
+  苏格兰: { flag: "🏴", code: "SCO" },
 };
 
 const playerAvatarMap = {
   梅西: "梅",
-  阿尔瓦雷斯: "阿",
-  姆巴佩: "姆",
+  哈兰德: "哈",
+  内马尔: "内",
+  "德罗伊·杜阿尔特": "杜",
+  "利桑德罗·马丁内斯": "马",
+  "洛佩斯·卡布拉尔": "卡",
+  "迪内·博尔热斯": "博",
 };
 
 const formatTeam = (name) => ({
@@ -25,7 +33,88 @@ const formatTeam = (name) => ({
   ...(teamMeta[name] ?? { flag: "🏳️", code: name.slice(0, 3).toUpperCase() }),
 });
 
-const argentinaFranceMatch = todayMatches[0];
+const brazilScheduleRows = [
+  {
+    key: "brazil-13",
+    stage: "小组赛C组",
+    homeTeam: formatTeam("巴西"),
+    awayTeam: formatTeam("摩洛哥"),
+    time: "2026-06-14 06:00",
+    score: "1 : 1",
+    status: "本地库记录",
+    stadium: "本地演示库未提供场馆",
+  },
+  {
+    key: "brazil-16",
+    stage: "小组赛C组",
+    homeTeam: formatTeam("巴西"),
+    awayTeam: formatTeam("海地"),
+    time: "2026-06-20 08:30",
+    score: "3 : 0",
+    status: "本地库记录",
+    stadium: "本地演示库未提供场馆",
+  },
+  {
+    key: "brazil-91",
+    stage: "1/8决赛",
+    homeTeam: formatTeam("巴西"),
+    awayTeam: formatTeam("挪威"),
+    time: "2026-07-06 04:00",
+    score: "1 : 2",
+    status: "本地库记录",
+    stadium: "本地演示库未提供场馆",
+  },
+];
+
+const argentinaCapeVerdeMatch = {
+  id: "match-87",
+  homeTeam: "阿根廷",
+  awayTeam: "佛得角",
+  matchDate: "2026-07-04",
+  matchTime: "06:00",
+  status: "本地库记录",
+  homeScore: 3,
+  awayScore: 2,
+  stage: "1/16决赛",
+};
+
+const argentinaCapeVerdeEvents = [
+  {
+    id: "event-87-01",
+    teamName: "阿根廷",
+    playerName: "梅西",
+    minute: "29'",
+    goalType: "进球",
+  },
+  {
+    id: "event-87-02",
+    teamName: "佛得角",
+    playerName: "德罗伊·杜阿尔特",
+    minute: "59'",
+    goalType: "进球",
+  },
+  {
+    id: "event-87-03",
+    teamName: "阿根廷",
+    playerName: "利桑德罗·马丁内斯",
+    minute: "92'",
+    goalType: "进球",
+  },
+  {
+    id: "event-87-04",
+    teamName: "佛得角",
+    playerName: "洛佩斯·卡布拉尔",
+    minute: "103'",
+    goalType: "进球",
+  },
+  {
+    id: "event-87-05",
+    teamName: "佛得角",
+    playerName: "迪内·博尔热斯",
+    minute: "111'",
+    goalType: "乌龙球",
+  },
+];
 
 function buildHistory(userInput, answer) {
   return [
@@ -57,108 +146,101 @@ function buildMessageFeed(userInput, answer, note) {
 const queryCases = [
   {
     id: "query-01",
-    label: "今天有哪些比赛",
-    placeholder: "例如：今天有哪些世界杯比赛？",
+    label: "巴西赛程",
+    placeholder: "例如：请查询巴西队赛程",
     request: {
       user_input: quickQueries[0].queryText,
       history: [],
     },
     response: {
       answer:
-        "今天共有 3 场世界杯比赛，当前最值得关注的是阿根廷对法国，比赛正在进行中。",
+        "巴西队赛程查询结果来自本地 SQLite 课程演示数据库，包含小组赛和淘汰赛记录。",
       tool_calls: [
         buildToolCall(
-          "match_schedule_lookup",
-          { date: "today", competition: "world_cup" },
+          "query_schedule",
+          { team: "巴西" },
           "success",
-          "返回 3 场比赛，包含 1 场进行中、1 场未开始、1 场已结束。"
+          "返回巴西队相关赛程记录。"
         ),
       ],
       error: null,
       result_payload: {
         mode: "schedule",
-        title: "今日世界杯赛程",
-        summary: "共返回 3 场比赛，包含进行中、未开始和已结束三种状态。",
-        rows: todayMatches.map((match) => ({
-          key: match.id,
-          stage: match.stage,
-          homeTeam: formatTeam(match.homeTeam),
-          awayTeam: formatTeam(match.awayTeam),
-          time: match.matchTime,
-          score: `${match.homeScore} : ${match.awayScore}`,
-          status: match.status,
-          stadium: match.stadium,
-        })),
+        title: "巴西队本地演示赛程",
+        summary: "以下为 tools/worldcup.db 中的演示数据，不代表官方实时数据。",
+        rows: brazilScheduleRows,
       },
     },
   },
   {
     id: "query-02",
-    label: "阿根廷比分",
-    placeholder: "例如：阿根廷现在比分是多少？",
+    label: "梅西数据",
+    placeholder: "例如：请查询梅西的世界杯进球数据",
     request: {
       user_input: quickQueries[1].queryText,
       history: [],
     },
     response: {
       answer:
-        "阿根廷当前 2 比 1 领先法国，比赛正在进行中，已进入下半场。",
+        "球员数据查询结果（本地课程演示数据库）：\n- 球员：梅西\n- 球队：阿根廷\n- 进球：7\n- 助攻：3\n- 出场次数：5",
       tool_calls: [
         buildToolCall(
-          "live_score_lookup",
-          { team: "阿根廷", scope: "today" },
+          "query_player_stats",
+          { player_name: "梅西" },
           "success",
-          "匹配到阿根廷对法国，当前比分为 2 : 1。"
+          '{"player_name":"梅西","team":"阿根廷","goals":7,"assists":3,"appearances":5}'
         ),
       ],
       error: null,
       result_payload: {
         mode: "scorecard",
-        title: "阿根廷实时比分卡",
-        summary: "当前阿根廷对阵法国，阿根廷 2 比 1 领先。",
+        title: "梅西本地演示统计",
+        summary: "字段来自 players 表：球队、进球、助攻、出场次数。",
         match: {
-          ...argentinaFranceMatch,
-          homeTeam: formatTeam(argentinaFranceMatch.homeTeam),
-          awayTeam: formatTeam(argentinaFranceMatch.awayTeam),
+          homeTeam: formatTeam("梅西"),
+          awayTeam: formatTeam("阿根廷"),
+          homeScore: 7,
+          awayScore: 3,
+          stage: "进球 : 助攻",
         },
         stats: [
-          { label: "比赛状态", value: "进行中" },
-          { label: "领先方", value: "阿根廷" },
-          { label: "最近进球", value: "姆巴佩 52'" },
-          { label: "比赛阶段", value: argentinaFranceMatch.stage },
+          { label: "球队", value: "阿根廷" },
+          { label: "进球", value: "7" },
+          { label: "助攻", value: "3" },
+          { label: "出场次数", value: "5" },
         ],
       },
     },
   },
   {
     id: "query-03",
-    label: "谁进球了",
-    placeholder: "例如：阿根廷对法国这场谁进球了？",
+    label: "比赛详情",
+    placeholder: "例如：请查询阿根廷和佛得角的比赛详情",
     request: {
       user_input: quickQueries[2].queryText,
       history: [],
     },
     response: {
       answer:
-        "目前这场比赛的进球球员有梅西、阿尔瓦雷斯和姆巴佩，其中阿根廷 2 球，法国 1 球。",
+        "比赛详情查询结果（本地课程演示数据库）：阿根廷 3:2 佛得角，并包含进球事件。",
       tool_calls: [
         buildToolCall(
-          "match_detail_lookup",
-          { match: "阿根廷 对 法国", include: ["goals"] },
+          "query_match_detail",
+          { home_team: "阿根廷", away_team: "佛得角" },
           "success",
-          "返回 3 条进球事件：梅西、阿尔瓦雷斯、姆巴佩各进 1 球。"
+          "返回 match_id=87 的比分和进球事件。"
         ),
       ],
       error: null,
       result_payload: {
         mode: "events",
-        title: "比赛进球事件",
-        summary: "共 3 个进球事件，支持球员、时间和所属球队展示。",
+        title: "阿根廷 vs 佛得角进球事件",
+        summary: "共 5 条进球事件，数据来自本地 SQLite 演示库。",
         match: {
-          homeTeam: formatTeam(argentinaFranceMatch.homeTeam),
-          awayTeam: formatTeam(argentinaFranceMatch.awayTeam),
+          homeTeam: formatTeam(argentinaCapeVerdeMatch.homeTeam),
+          awayTeam: formatTeam(argentinaCapeVerdeMatch.awayTeam),
         },
-        events: goalEvents.map((event) => ({
+        events: argentinaCapeVerdeEvents.map((event) => ({
           ...event,
           avatar: playerAvatarMap[event.playerName] ?? event.playerName.slice(0, 1),
           team: formatTeam(event.teamName),
@@ -168,34 +250,28 @@ const queryCases = [
   },
   {
     id: "query-04",
-    label: "焦点战推荐",
-    placeholder: "例如：今天最值得看的比赛是哪一场？",
+    label: "今日示例",
+    placeholder: "例如：请查询葡萄牙和西班牙的比赛详情",
     request: {
       user_input: quickQueries[3].queryText,
       history: [],
     },
     response: {
       answer:
-        "如果只看一场，我会推荐阿根廷对法国。这场已经开打，而且梅西与姆巴佩的对位很有看点。",
+        "比赛详情查询结果（本地课程演示数据库）：葡萄牙 0:1 西班牙。",
       tool_calls: [
         buildToolCall(
-          "match_schedule_lookup",
-          { date: "today", competition: "world_cup" },
+          "query_match_detail",
+          { home_team: "葡萄牙", away_team: "西班牙" },
           "success",
-          "已获取今日全部赛程，并筛出焦点比赛候选。"
-        ),
-        buildToolCall(
-          "match_detail_lookup",
-          { match: "阿根廷 对 法国", include: ["status", "stars"] },
-          "success",
-          "阿根廷对法国为进行中比赛，且具备明显球星对位与观赛价值。"
+          "返回 match_id=93 的比赛详情。"
         ),
       ],
       error: null,
       result_payload: {
         mode: "recommendation",
-        title: "今日焦点战推荐",
-        summary: "按热度和观赛价值排序，推荐优先观看阿根廷对法国。",
+        title: "本地演示库比赛卡片",
+        summary: "这些卡片用于说明首页展示，不代表官方实时赛况。",
         cards: featuredMatches.map((match, index) => ({
           ...match,
           rank: index + 1,
@@ -224,25 +300,23 @@ export function resolveMockCaseByQuestion(question) {
   const normalized = question.toLowerCase();
 
   if (
-    normalized.includes("谁进球") ||
-    normalized.includes("goal") ||
-    normalized.includes("进球")
-  ) {
-    return queryCaseMap["query-03"];
-  }
-
-  if (
-    normalized.includes("比分") ||
-    normalized.includes("score") ||
-    normalized.includes("阿根廷")
+    normalized.includes("梅西") ||
+    normalized.includes("球员") ||
+    normalized.includes("进球数据")
   ) {
     return queryCaseMap["query-02"];
   }
 
   if (
-    normalized.includes("值得看") ||
-    normalized.includes("推荐") ||
-    normalized.includes("焦点")
+    normalized.includes("佛得角") ||
+    normalized.includes("阿根廷")
+  ) {
+    return queryCaseMap["query-03"];
+  }
+
+  if (
+    normalized.includes("葡萄牙") ||
+    normalized.includes("西班牙")
   ) {
     return queryCaseMap["query-04"];
   }
