@@ -87,3 +87,28 @@ def test_chat_endpoint_maps_internal_error_status_to_failed(monkeypatch):
 
     assert response.status_code == 200
     assert response.json()["tool_calls"][0]["status"] == "failed"
+
+
+def test_chat_endpoint_keeps_empty_input_in_frontend_contract(monkeypatch):
+    def fake_chat_with_agent(user_input, history):
+        return {
+            "answer": "请输入你的问题。",
+            "tool_calls": [],
+            "error": "user_input 不能为空",
+        }
+
+    monkeypatch.setattr(api_module, "chat_with_agent", fake_chat_with_agent)
+    client = TestClient(api_module.app)
+
+    response = client.post(
+        "/api/chat",
+        json={"user_input": "", "history": []},
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "answer": "请输入你的问题。",
+        "tool_calls": [],
+        "error": "user_input 不能为空",
+        "result_payload": None,
+    }

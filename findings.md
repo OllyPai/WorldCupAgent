@@ -36,6 +36,7 @@
 - `backend/app.py` 已提供 FastAPI HTTP 适配层。
 - 当前从 `tools` 包注册三个工具：`query_schedule`、`query_player_stats` 和 `query_match_detail`。
 - `chat_with_agent()` 已将 LangChain 内部消息转换为前端契约。
+- HTTP API 对空输入也返回统一的 `answer / tool_calls / error / result_payload` 结构，不让前端处理 FastAPI 默认 422 错误结构。
 - 命令行 `main()` 已复用统一入口。
 - `tests/test_minimal_agent.py` 使用 `FakeAgent` 做离线测试。
 - 当前离线测试覆盖：直接回答、历史传递、工具成功、工具失败、多工具、模型失败、空输入、三工具注册、系统提示约束和真实工具契约。
@@ -85,7 +86,8 @@
 
 - 仓库：`https://github.com/OllyPai/WorldCupAgent`
 - 队友工具 PR：`https://github.com/OllyPai/WorldCupAgent/pull/2`（已合并）
-- Agent 核心 PR：`https://github.com/OllyPai/WorldCupAgent/pull/3`（draft）
+- Agent 核心 PR：`https://github.com/OllyPai/WorldCupAgent/pull/3`（已合并）
+- API 适配 PR：`https://github.com/OllyPai/WorldCupAgent/pull/4`（draft，当前可合并）
 - 协作基线：`docs/team-alignment.md`
 - 前端交接：`docs/agent-handoff.md`
 - 启动说明：`README.md`

@@ -13,7 +13,7 @@ class ChatMessage(BaseModel):
 
 
 class ChatRequest(BaseModel):
-    user_input: str = Field(..., min_length=1)
+    user_input: str
     history: list[ChatMessage] = Field(default_factory=list)
 
 

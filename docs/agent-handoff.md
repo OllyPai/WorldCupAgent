@@ -2,6 +2,36 @@
 
 本文档面向前端和联调成员，描述当前真实可用的 Agent 接口。
 
+## 0. 前端最小接入步骤
+
+1. 启动后端：
+
+```bash
+uvicorn backend.app:app --reload --port 8000
+```
+
+2. 确认后端在线：
+
+```bash
+curl http://localhost:8000/api/health
+```
+
+期望返回：
+
+```json
+{"status":"ok"}
+```
+
+3. React 页面发送 `POST http://localhost:8000/api/chat`，不要直接调用 Python 文件。
+
+4. 前端只需要先消费三个字段：
+
+- `answer`：聊天气泡展示；
+- `tool_calls`：Trace/工具调用过程展示；
+- `error`：不为空时展示错误提示。
+
+`result_payload` 当前固定为 `null`，前端结构化卡片可以先隐藏或降级展示 `answer`。
+
 ## 1. Python 内部入口
 
 后端 API 内部调用 Agent 时导入：
@@ -126,6 +156,43 @@ POST /api/chat
 - Agent 内部使用 `success/error`；
 - HTTP API 返回给前端时映射为 `success/failed`，对齐前端文档；
 - `result_payload` 当前固定为 `null`，后续需要结构化卡片时再补。
+
+React `fetch` 示例：
+
+```js
+async function sendMessage(userInput, history) {
+  const response = await fetch("http://localhost:8000/api/chat", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      user_input: userInput,
+      history,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+
+  return response.json();
+}
+```
+
+前端历史维护示例：
+
+```js
+const result = await sendMessage(inputText, messages);
+
+setMessages([
+  ...messages,
+  { role: "user", content: inputText },
+  { role: "assistant", content: result.answer },
+]);
+```
+
+注意：`history` 只传 `{ role, content }`，不要把 Trace 面板、卡片数据或前端组件状态传回后端。
 
 ## 6. 本地运行
 

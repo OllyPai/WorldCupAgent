@@ -4,7 +4,7 @@
 
 - **当前阶段：** 阶段 5——Web 联调
 - **分支：** `zheng/api-adapter`
-- **工作区：** 正在实现 FastAPI HTTP 适配层；仍存在未跟踪的 `docs/proposal-report.md`、`output/`、`tmp/`
+- **工作区：** 正在完善 FastAPI HTTP 适配层和前端接入说明；仍存在未跟踪的 `docs/proposal-report.md`、`output/`、`tmp/`
 - **外部依赖变化：** 队友工具 PR #2 和 Agent 核心 PR #3 均已合并到 GitHub `main`。
 
 ## 已完成记录
@@ -80,6 +80,8 @@
 - `POST /api/chat` 接收 `user_input/history`，内部调用 `chat_with_agent()`。
 - API 响应包含 `answer/tool_calls/error/result_payload`，其中 `result_payload` 当前为 `null`。
 - API 层将 Agent 内部工具状态 `error` 映射成前端契约中的 `failed`。
+- 已补充 `docs/agent-handoff.md` 前端最小接入步骤、React `fetch` 示例和历史维护示例。
+- 已调整 API 空输入处理：空字符串不再被 FastAPI 返回默认 422，而是走 `chat_with_agent()` 并返回统一前端契约。
 
 ## 测试结果
 
@@ -103,6 +105,9 @@
 | 2026-07-07 | `.venv/bin/python -m py_compile agent.py backend/app.py tools/*.py test_tools.py` | 无输出 | 通过 |
 | 2026-07-07 | `curl http://127.0.0.1:8000/api/health` | `{"status":"ok"}` | 通过 |
 | 2026-07-07 | `POST /api/chat` 真实冒烟 | HTTP 层、Agent 层、工具层完整打通，返回前端契约 | 通过 |
+| 2026-07-07 | `.venv/bin/python -m pytest -q` | 14 passed, 1 FastAPI TestClient 上游弃用警告 | 通过 |
+| 2026-07-07 | `.venv/bin/python -m py_compile agent.py backend/app.py tools/*.py test_tools.py` | 无输出 | 通过 |
+| 2026-07-07 | `git diff --check` | 无输出 | 通过 |
 
 ## 错误日志
 
@@ -117,11 +122,10 @@
 
 ## 下一工作块
 
-1. 提交并推送 `zheng/api-adapter`；
-2. 创建 API 适配层 PR；
-3. 把 `/api/chat` 契约发给前端队友接入；
-4. 与前端完成浏览器端真实联调；
-5. 用户复述 `React → FastAPI → chat_with_agent → Agent → Tool → response` 数据流。
+1. 提交并推送本次 API/文档小改动到 `zheng/api-adapter`；
+2. 把 `/api/chat` 契约发给前端队友接入；
+3. 与前端完成浏览器端真实联调；
+4. 用户复述 `React → FastAPI → chat_with_agent → Agent → Tool → response` 数据流。
 
 ## 学习证据
 
@@ -137,7 +141,7 @@
 
 | 问题 | 答案 |
 |------|------|
-| 我在哪里？ | 阶段 3：Agent 正确性与核心测试 |
+| 我在哪里？ | 阶段 5：Web 联调 |
 | 我要去哪里？ | 工具集成、Web 联调、系统测试、文档和最终交付 |
 | 目标是什么？ | 完成可演示、可测试、可协作交付且用户能解释核心流程的课程项目 |
 | 我学到了什么？ | 见 `findings.md` |
