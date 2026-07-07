@@ -63,6 +63,14 @@
 - Draft PR #3 已创建：`https://github.com/OllyPai/WorldCupAgent/pull/3`
 - PR #3 当前状态：`MERGEABLE / CLEAN`，文件范围为 Agent 核心、测试和规划文件。
 
+### 阶段 5/6：前端交接与启动文档
+
+- **状态：** in_progress
+- 已重写 `docs/agent-handoff.md`，移除旧版错误信息，改为当前 `chat_with_agent()` 接口说明。
+- 已新增 `README.md`，包含环境准备、运行、测试和接口示例。
+- 已新增 `.env.example`，说明 `DEEPSEEK_API_KEY`。
+- 已新增 `requirements.txt`，列出当前核心依赖和后续 Streamlit 前端依赖。
+
 ## 测试结果
 
 | 日期 | 测试 | 结果 | 状态 |
@@ -97,8 +105,8 @@
 1. 等待或执行 PR #3 review/merge；
 2. 用户复述 `main → chat_with_agent → Agent → Tool → 统一结果` 数据流；
 3. 与前端负责人确认最小 Web 调用方式；
-4. 增加前端对接说明或 README 启动说明；
-5. 开始 Web 联调。
+4. 开始 Web 联调；
+5. 准备用户复述和答辩用的 Agent 数据流解释。
 
 ## 学习证据
 

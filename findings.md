@@ -82,6 +82,8 @@
 - 队友工具 PR：`https://github.com/OllyPai/WorldCupAgent/pull/2`（已合并）
 - Agent 核心 PR：`https://github.com/OllyPai/WorldCupAgent/pull/3`（draft）
 - 协作基线：`docs/team-alignment.md`
+- 前端交接：`docs/agent-handoff.md`
+- 启动说明：`README.md`
 - 当前核心实现：`agent.py`
 - 当前 Agent 测试：`tests/test_minimal_agent.py`
 
