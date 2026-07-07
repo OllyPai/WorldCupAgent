@@ -5,7 +5,7 @@
 - **当前阶段：** 阶段 3——Agent 正确性与核心测试
 - **分支：** `zheng/agent-core`
 - **工作区：** 核心代码、测试、工具和规划文件已有本地里程碑提交；仍存在未跟踪的 `docs/`、`output/`、`tmp/`
-- **外部依赖变化：** 队友工具 PR #2 已在当前分支完成初步集成验证，尚未合并到 GitHub `main`。
+- **外部依赖变化：** 队友工具 PR #2 已合并到 GitHub `main`；你的 Agent 核心 draft PR #3 已创建。
 
 ## 已完成记录
 
@@ -56,6 +56,13 @@
 - 直接问候类请求不调用工具，仍返回模型自然语言回答。
 - 不存在球员查询能返回结构化工具错误，不抛异常。
 
+### GitHub 协作状态
+
+- PR #2 `tools` 已合并到 `main`。
+- 当前分支 `zheng/agent-core` 已推送到远端。
+- Draft PR #3 已创建：`https://github.com/OllyPai/WorldCupAgent/pull/3`
+- PR #3 当前状态：`MERGEABLE / CLEAN`，文件范围为 Agent 核心、测试和规划文件。
+
 ## 测试结果
 
 | 日期 | 测试 | 结果 | 状态 |
@@ -87,11 +94,11 @@
 
 ## 下一工作块
 
-1. 运行最终测试套件并提交回答格式化修复；
-2. 推送 `zheng/agent-core` 分支并创建 PR；
-3. 决定 PR #2 是先合入 main，还是让你的 Agent PR 包含该工具层合并提交；
-4. 用户复述 `main → chat_with_agent → Agent → Tool → 统一结果` 数据流；
-5. 与前端负责人确认最小 Web 调用方式。
+1. 等待或执行 PR #3 review/merge；
+2. 用户复述 `main → chat_with_agent → Agent → Tool → 统一结果` 数据流；
+3. 与前端负责人确认最小 Web 调用方式；
+4. 增加前端对接说明或 README 启动说明；
+5. 开始 Web 联调。
 
 ## 学习证据
 
