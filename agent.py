@@ -48,6 +48,11 @@ def build_agent():
 
 
 def _tool_result_summary(content: Any) -> tuple[str, str]:
+    status, summary, _ = _parse_tool_result(content)
+    return status, summary
+
+
+def _parse_tool_result(content: Any) -> tuple[str, str, Any]:
     try:
         parsed_content = json.loads(content) if isinstance(content, str) else content
     except json.JSONDecodeError:
@@ -55,12 +60,103 @@ def _tool_result_summary(content: Any) -> tuple[str, str]:
 
     if isinstance(parsed_content, dict):
         if parsed_content.get("success") is False:
-            return "error", str(parsed_content.get("error") or "工具调用失败")
+            summary = str(parsed_content.get("error") or "工具调用失败")
+            return "error", summary, None
         if "data" in parsed_content:
             summary = json.dumps(parsed_content["data"], ensure_ascii=False)
-            return "success", summary
+            return "success", summary, parsed_content["data"]
 
-    return "success", str(content)
+    return "success", str(content), parsed_content
+
+
+def _format_schedule(data: Any) -> str:
+    if not isinstance(data, list):
+        return f"赛程查询结果：{json.dumps(data, ensure_ascii=False)}"
+
+    lines = ["赛程查询结果（本地课程演示数据库）："]
+    for match in data:
+        if not isinstance(match, dict):
+            lines.append(f"- {match}")
+            continue
+
+        score = f"{match.get('home_score')}:{match.get('away_score')}"
+        lines.append(
+            "- "
+            f"{match.get('match_date')} {match.get('match_time')}，"
+            f"{match.get('stage')}，"
+            f"{match.get('home_team')} {score} {match.get('away_team')}"
+        )
+
+    return "\n".join(lines)
+
+
+def _format_player_stats(data: Any) -> str:
+    if not isinstance(data, dict):
+        return f"球员数据查询结果：{json.dumps(data, ensure_ascii=False)}"
+
+    fields = [
+        ("球员", data.get("player_name")),
+        ("球队", data.get("team")),
+        ("进球", data.get("goals")),
+        ("助攻", data.get("assists")),
+        ("出场次数", data.get("appearances")),
+    ]
+    lines = ["球员数据查询结果（本地课程演示数据库）："]
+    lines.extend(f"- {name}：{value}" for name, value in fields if value is not None)
+    return "\n".join(lines)
+
+
+def _format_match_detail(data: Any) -> str:
+    if not isinstance(data, dict):
+        return f"比赛详情查询结果：{json.dumps(data, ensure_ascii=False)}"
+
+    score = f"{data.get('home_score')}:{data.get('away_score')}"
+    lines = [
+        "比赛详情查询结果（本地课程演示数据库）：",
+        f"- 比赛ID：{data.get('match_id')}",
+        f"- 时间：{data.get('match_date')} {data.get('match_time')}",
+        f"- 阶段：{data.get('stage')}",
+        f"- 比分：{data.get('home_team')} {score} {data.get('away_team')}",
+    ]
+
+    goals = data.get("goals")
+    if isinstance(goals, list) and goals:
+        lines.append("- 进球记录：")
+        for goal in goals:
+            if not isinstance(goal, dict):
+                lines.append(f"  - {goal}")
+                continue
+
+            event_type = goal.get("event_type")
+            event_label = "乌龙球" if event_type == "own_goal" else "进球"
+            lines.append(
+                "  - "
+                f"{goal.get('goal_time')}' "
+                f"{goal.get('player_name')}（{goal.get('team')}，{event_label}）"
+            )
+
+    return "\n".join(lines)
+
+
+def _format_tool_answer(tool_calls: list[dict[str, Any]]) -> str:
+    sections = []
+
+    for call in tool_calls:
+        if call["status"] == "error":
+            sections.append(f"{call['tool']} 调用失败：{call['summary']}")
+            continue
+
+        data = call.get("_data")
+        if call["tool"] == "query_schedule":
+            sections.append(_format_schedule(data))
+        elif call["tool"] == "query_player_stats":
+            sections.append(_format_player_stats(data))
+        elif call["tool"] == "query_match_detail":
+            sections.append(_format_match_detail(data))
+        else:
+            sections.append(f"{call['tool']} 查询结果：{call['summary']}")
+
+    return "\n\n".join(sections)
 
 
 def chat_with_agent(
@@ -111,9 +207,16 @@ def chat_with_agent(
         if isinstance(message, ToolMessage):
             record = tool_calls_by_id.get(message.tool_call_id)
             if record is not None:
-                record["status"], record["summary"] = _tool_result_summary(
-                    message.content
-                )
+                status, summary, data = _parse_tool_result(message.content)
+                record["status"] = status
+                record["summary"] = summary
+                record["_data"] = data
+
+    if tool_calls:
+        answer = _format_tool_answer(tool_calls)
+
+    for call in tool_calls:
+        call.pop("_data", None)
 
     return {
         "answer": answer,

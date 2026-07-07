@@ -61,13 +61,15 @@ def test_tool_call_is_converted_for_frontend():
                 tool_call_id="call-1",
                 name="query_schedule",
             ),
-            AIMessage(content="巴西队有两场示例赛程。"),
+            AIMessage(content="巴西队有两场示例赛程，并且已经小组头名出线。"),
         ]
     )
 
     result = chat_with_agent("查询巴西队赛程", agent=fake_agent)
 
-    assert result["answer"] == "巴西队有两场示例赛程。"
+    assert "赛程查询结果" in result["answer"]
+    assert "巴西" in result["answer"]
+    assert "小组头名" not in result["answer"]
     assert result["error"] is None
     assert result["tool_calls"][0]["tool"] == "query_schedule"
     assert result["tool_calls"][0]["input"] == {"team": "巴西"}
@@ -115,13 +117,15 @@ def test_multiple_tool_calls_are_converted_for_frontend():
                 tool_call_id="call-2",
                 name="query_player_stats",
             ),
-            AIMessage(content="已查询阿根廷赛程和梅西数据。"),
+            AIMessage(content="已查询阿根廷赛程和梅西数据，阿根廷肯定能夺冠。"),
         ]
     )
 
     result = chat_with_agent("查询阿根廷赛程和梅西数据", agent=fake_agent)
 
-    assert result["answer"] == "已查询阿根廷赛程和梅西数据。"
+    assert "赛程查询结果" in result["answer"]
+    assert "球员数据查询结果" in result["answer"]
+    assert "肯定能夺冠" not in result["answer"]
     assert [call["tool"] for call in result["tool_calls"]] == [
         "query_schedule",
         "query_player_stats",
@@ -176,6 +180,7 @@ def test_structured_tool_error_is_preserved():
 
     assert result["tool_calls"][0]["status"] == "error"
     assert result["tool_calls"][0]["summary"] == "没有找到球队：不存在队"
+    assert result["answer"] == "query_schedule 调用失败：没有找到球队：不存在队"
 
 
 def test_empty_input_does_not_call_agent():
