@@ -6,18 +6,18 @@ import {
 } from "./homeMock";
 
 const teamMeta = {
-  Argentina: { flag: "🇦🇷", code: "ARG" },
-  France: { flag: "🇫🇷", code: "FRA" },
-  Brazil: { flag: "🇧🇷", code: "BRA" },
-  Spain: { flag: "🇪🇸", code: "ESP" },
-  Germany: { flag: "🇩🇪", code: "GER" },
-  Portugal: { flag: "🇵🇹", code: "POR" },
+  阿根廷: { flag: "🇦🇷", code: "ARG" },
+  法国: { flag: "🇫🇷", code: "FRA" },
+  巴西: { flag: "🇧🇷", code: "BRA" },
+  西班牙: { flag: "🇪🇸", code: "ESP" },
+  德国: { flag: "🇩🇪", code: "GER" },
+  葡萄牙: { flag: "🇵🇹", code: "POR" },
 };
 
 const playerAvatarMap = {
-  Messi: "M",
-  Alvarez: "A",
-  Mbappe: "MB",
+  梅西: "梅",
+  阿尔瓦雷斯: "阿",
+  姆巴佩: "姆",
 };
 
 const formatTeam = (name) => ({
@@ -65,7 +65,7 @@ const queryCases = [
     },
     response: {
       answer:
-        "今天共有 3 场世界杯比赛，当前最值得关注的是阿根廷 vs 法国，比赛正在进行中。",
+        "今天共有 3 场世界杯比赛，当前最值得关注的是阿根廷对法国，比赛正在进行中。",
       tool_calls: [
         buildToolCall(
           "match_schedule_lookup",
@@ -106,9 +106,9 @@ const queryCases = [
       tool_calls: [
         buildToolCall(
           "live_score_lookup",
-          { team: "Argentina", scope: "today" },
+          { team: "阿根廷", scope: "today" },
           "success",
-          "匹配到阿根廷 vs 法国，当前比分为 2 : 1。"
+          "匹配到阿根廷对法国，当前比分为 2 : 1。"
         ),
       ],
       error: null,
@@ -123,8 +123,8 @@ const queryCases = [
         },
         stats: [
           { label: "比赛状态", value: "进行中" },
-          { label: "领先方", value: "Argentina" },
-          { label: "最近进球", value: "Mbappe 52'" },
+          { label: "领先方", value: "阿根廷" },
+          { label: "最近进球", value: "姆巴佩 52'" },
           { label: "比赛阶段", value: argentinaFranceMatch.stage },
         ],
       },
@@ -140,13 +140,13 @@ const queryCases = [
     },
     response: {
       answer:
-        "目前这场比赛的进球球员有 Messi、Alvarez 和 Mbappe，其中阿根廷 2 球，法国 1 球。",
+        "目前这场比赛的进球球员有梅西、阿尔瓦雷斯和姆巴佩，其中阿根廷 2 球，法国 1 球。",
       tool_calls: [
         buildToolCall(
           "match_detail_lookup",
-          { match: "Argentina vs France", include: ["goals"] },
+          { match: "阿根廷 对 法国", include: ["goals"] },
           "success",
-          "返回 3 条进球事件：Messi、Alvarez、Mbappe 各进 1 球。"
+          "返回 3 条进球事件：梅西、阿尔瓦雷斯、姆巴佩各进 1 球。"
         ),
       ],
       error: null,
@@ -176,7 +176,7 @@ const queryCases = [
     },
     response: {
       answer:
-        "如果只看一场，我会推荐阿根廷 vs 法国。这场已经开打，而且梅西与姆巴佩的对位很有看点。",
+        "如果只看一场，我会推荐阿根廷对法国。这场已经开打，而且梅西与姆巴佩的对位很有看点。",
       tool_calls: [
         buildToolCall(
           "match_schedule_lookup",
@@ -186,16 +186,16 @@ const queryCases = [
         ),
         buildToolCall(
           "match_detail_lookup",
-          { match: "Argentina vs France", include: ["status", "stars"] },
+          { match: "阿根廷 对 法国", include: ["status", "stars"] },
           "success",
-          "阿根廷 vs 法国为进行中比赛，且具备明显球星对位与观赛价值。"
+          "阿根廷对法国为进行中比赛，且具备明显球星对位与观赛价值。"
         ),
       ],
       error: null,
       result_payload: {
         mode: "recommendation",
         title: "今日焦点战推荐",
-        summary: "按热度和观赛价值排序，推荐优先观看阿根廷 vs 法国。",
+        summary: "按热度和观赛价值排序，推荐优先观看阿根廷对法国。",
         cards: featuredMatches.map((match, index) => ({
           ...match,
           rank: index + 1,

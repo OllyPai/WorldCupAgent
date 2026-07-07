@@ -16,7 +16,7 @@ function QuickQueryPanel({
     <div className="query-panel-grid">
       <Card className="query-choice-card" bordered={false}>
         <div className="section-headline">
-          <span className="section-kicker">Quick Query</span>
+          <span className="section-kicker">快捷查询</span>
           <h3>让首页先具备“会问会答”的感觉</h3>
         </div>
 
@@ -39,7 +39,7 @@ function QuickQueryPanel({
       <Card className="query-answer-card" bordered={false}>
         <div className="answer-topline">
           <Tag color="cyan">当前示例问题</Tag>
-          <span className="mini-label">Natural Language Input</span>
+          <span className="mini-label">自然语言输入</span>
         </div>
 
         <div className="answer-question">

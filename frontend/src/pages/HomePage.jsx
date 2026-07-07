@@ -47,7 +47,7 @@ function HomePage() {
         <section className="section-shell" id="today">
           <div className="section-title-row">
             <div className="section-headline">
-              <span className="section-kicker">Today Matches</span>
+              <span className="section-kicker">今日比赛</span>
               <h2>今日赛程一眼看清</h2>
               <p>先让用户看到信息密度，再让他进入智能查询。</p>
             </div>
@@ -62,7 +62,7 @@ function HomePage() {
         <section className="section-shell" id="featured">
           <div className="section-title-row">
             <div className="section-headline">
-              <span className="section-kicker">Featured Matches</span>
+              <span className="section-kicker">焦点赛事</span>
               <h2>深蓝黑底上的焦点赛事卡片</h2>
               <p>这里强调热点、比分和比赛气氛，做出赛事首页的张力。</p>
             </div>
@@ -85,12 +85,12 @@ function HomePage() {
         <section className="section-shell accent-shell" id="query">
           <div className="section-title-row">
             <div className="section-headline">
-              <span className="section-kicker">Natural Language Query</span>
+              <span className="section-kicker">自然语言查询</span>
               <h2>首页直接体现“能查什么”</h2>
               <p>先用示例问题做出交互感，后续再接真实的查询页和后端接口。</p>
             </div>
             <Tag color="cyan" icon={<ThunderboltOutlined />}>
-              Query First
+              先查后聊
             </Tag>
           </div>
 
@@ -106,7 +106,7 @@ function HomePage() {
         <section className="section-shell" id="agent">
           <div className="section-title-row">
             <div className="section-headline">
-              <span className="section-kicker">Transparent Agent Flow</span>
+              <span className="section-kicker">智能体流程可视化</span>
               <h2>工具调用过程必须看得见</h2>
               <p>
                 这是课程评分点之一，所以首页就把工具名、参数、结果摘要展示出来。

@@ -9,11 +9,24 @@ function TeamInline({ team }) {
   );
 }
 
-function ResultShowcase({ result }) {
+function ResultShowcase({ result, fallbackAnswer = "" }) {
   if (!result) {
     return (
       <Card className="query-result-card" bordered={false}>
-        <Empty description="暂时没有结果可以展示" />
+        {fallbackAnswer ? (
+          <div className="query-answer-fallback">
+            <div className="section-headline result-headline">
+              <span className="section-kicker">结果摘要</span>
+              <h3>当前接口暂未返回结构化结果</h3>
+              <p>现阶段以后端返回的文本 answer 为主，后续再逐步补充卡片或表格。</p>
+            </div>
+            <div className="query-answer-fallback-box">
+              <p>{fallbackAnswer}</p>
+            </div>
+          </div>
+        ) : (
+          <Empty description="暂时没有结果可以展示" />
+        )}
       </Card>
     );
   }
@@ -26,7 +39,7 @@ function ResultShowcase({ result }) {
       render: (_, row) => (
         <div className="matchup-cell">
           <TeamInline team={row.homeTeam} />
-          <span className="matchup-divider">vs</span>
+          <span className="matchup-divider">对</span>
           <TeamInline team={row.awayTeam} />
         </div>
       ),
@@ -56,7 +69,7 @@ function ResultShowcase({ result }) {
   return (
     <Card className="query-result-card" bordered={false}>
       <div className="section-headline result-headline">
-        <span className="section-kicker">Structured Result</span>
+        <span className="section-kicker">结构化结果</span>
         <h3>{result.title}</h3>
         <p>{result.summary}</p>
       </div>
@@ -117,7 +130,7 @@ function ResultShowcase({ result }) {
         <div className="recommend-grid">
           {result.cards.map((card) => (
             <div className="recommend-card" key={card.id}>
-              <div className="recommend-rank">TOP {card.rank}</div>
+              <div className="recommend-rank">推荐 {card.rank}</div>
               <div className="recommend-matchup">
                 <TeamInline team={card.homeTeam} />
                 <strong>

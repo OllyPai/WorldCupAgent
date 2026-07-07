@@ -15,12 +15,12 @@ function HeroBanner({
     <section className="hero-banner">
       <div className="hero-copy">
         <Tag color="red" className="hero-chip">
-          LIVE WORLD CUP
+          世界杯进行中
         </Tag>
         <h1>比分、进球、赛况，一句自然语言就能查。</h1>
         <p>
-          这是一个面向世界杯场景的赛事信息查询智能体首页 Demo。首页先展示
-          今日赛程、热门赛事与 Agent 调用过程，后续可直接扩展到查询页与比赛详情页。
+          这是一个面向世界杯场景的赛事信息查询智能体首页演示。首页先展示
+          今日赛程、热门赛事与智能体调用过程，后续可直接扩展到查询页与比赛详情页。
         </p>
 
         <Space size="middle" wrap>

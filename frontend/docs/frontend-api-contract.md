@@ -54,11 +54,11 @@
     {
       "tool": "live_score_lookup",
       "input": {
-        "team": "Argentina",
+        "team": "阿根廷",
         "scope": "today"
       },
       "status": "success",
-      "summary": "匹配到阿根廷 vs 法国，当前比分为 2 : 1。"
+      "summary": "匹配到阿根廷对法国，当前比分为 2 : 1。"
     }
   ],
   "error": null
@@ -174,7 +174,7 @@
 
 ```json
 {
-  "answer": "如果只看一场，我会推荐阿根廷 vs 法国。",
+  "answer": "如果只看一场，我会推荐阿根廷对法国。",
   "tool_calls": [
     {
       "tool": "match_schedule_lookup",
@@ -184,9 +184,9 @@
     },
     {
       "tool": "match_detail_lookup",
-      "input": { "match": "Argentina vs France", "include": ["status", "stars"] },
+      "input": { "match": "阿根廷 对 法国", "include": ["status", "stars"] },
       "status": "success",
-      "summary": "阿根廷 vs 法国为进行中比赛..."
+      "summary": "阿根廷对法国为进行中比赛..."
     }
   ],
   "error": null

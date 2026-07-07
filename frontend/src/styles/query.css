@@ -46,6 +46,10 @@
   gap: 20px;
 }
 
+.query-error-alert {
+  border-radius: 20px;
+}
+
 .query-chat-card.ant-card,
 .query-result-card.ant-card,
 .trace-inspector-card.ant-card {
@@ -202,6 +206,20 @@
 .result-headline,
 .trace-headline {
   margin-bottom: 18px;
+}
+
+.query-answer-fallback-box {
+  padding: 18px;
+  border-radius: 22px;
+  background: var(--panel-strong-bg);
+  border: 1px solid var(--line);
+}
+
+.query-answer-fallback-box p {
+  margin: 0;
+  color: var(--text-body);
+  line-height: 1.75;
+  white-space: pre-wrap;
 }
 
 .result-table .ant-table {

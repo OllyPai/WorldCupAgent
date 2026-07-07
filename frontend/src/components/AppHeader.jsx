@@ -13,7 +13,7 @@ function AppHeader() {
         <div>
           <div className="brand-title">世界杯赛事智能体</div>
           <div className="brand-subtitle">
-            Match Query · Score · Goal Trace
+            赛事查询 · 比分追踪 · 进球脉络
           </div>
         </div>
       </div>
@@ -22,12 +22,12 @@ function AppHeader() {
         <a href="#today">今日赛程</a>
         <a href="#featured">热门赛事</a>
         <a href="#query">快捷查询</a>
-        <a href="#agent">Agent 流程</a>
+        <a href="#agent">智能体流程</a>
       </nav>
 
       <Space size="middle">
         <Tag color="cyan" className="header-tag">
-          DEMO MOCK
+          演示数据
         </Tag>
         <ThemeToggleButton />
         <Button
