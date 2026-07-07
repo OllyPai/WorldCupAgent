@@ -84,6 +84,7 @@
 - 已补充 `docs/agent-handoff.md` 前端最小接入步骤、React `fetch` 示例和历史维护示例。
 - 已调整 API 空输入处理：空字符串不再被 FastAPI 返回默认 422，而是走 `chat_with_agent()` 并返回统一前端契约。
 - 已新增 `docs/frontend-ai-integration-guide.md`，面向前端同学和前端 AI 助手，说明真实 API 接入步骤、fetch 示例、AI 约束和联调验收清单。
+- 已新增 `docs/known-issues.md`，汇总当前 UI 文案、Trace 状态、Mock/示例数据边界、README 启动说明、正式文档和本地工作区问题。
 
 ## 测试结果
 
@@ -128,9 +129,10 @@
 ## 下一工作块
 
 1. 把 `docs/frontend-ai-integration-guide.md` 发给前端队友接入；
-2. 与前端完成浏览器端真实联调；
-3. 汇总系统测试用例和缺陷记录；
-4. 用户复述 `React → FastAPI → chat_with_agent → Agent → Tool → response` 数据流。
+2. 按 `docs/known-issues.md` 修复前端展示和文案问题；
+3. 与前端完成浏览器端真实联调；
+4. 汇总系统测试用例和缺陷记录；
+5. 用户复述 `React → FastAPI → chat_with_agent → Agent → Tool → response` 数据流。
 
 ## 学习证据
 
