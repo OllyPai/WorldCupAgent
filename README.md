@@ -61,6 +61,12 @@ DEEPSEEK_API_KEY=your_deepseek_api_key_here
 python agent.py
 ```
 
+HTTP API：
+
+```bash
+uvicorn backend.app:app --reload --port 8000
+```
+
 工具自测：
 
 ```bash
@@ -107,6 +113,7 @@ result = chat_with_agent(
 
 ```text
 agent.py                  # Agent 核心与统一入口
+backend/app.py            # FastAPI HTTP 适配层
 tools/                    # 三个工具与 SQLite 数据库
 tests/test_minimal_agent.py
 docs/team-alignment.md    # 小组接口与协作基线

@@ -2,4 +2,5 @@ langchain
 langchain-deepseek
 python-dotenv
 pytest
-streamlit
+fastapi
+uvicorn

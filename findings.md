@@ -27,12 +27,16 @@
 ```
 
 - 前端维护历史，Agent 核心保持无状态。
+- 前端契约文档确认：React 前端发送 `user_input/history`，期望返回 `answer/tool_calls/error`，可选 `result_payload`。
+- 前端期望 `tool_calls[].status` 使用 `success/failed`；Agent 内部使用 `success/error`，由 API 层做映射。
 
 ## 当前代码状态
 
 - `agent.py` 已包含 DeepSeek 模型配置和 LangChain `create_agent`。
+- `backend/app.py` 已提供 FastAPI HTTP 适配层。
 - 当前从 `tools` 包注册三个工具：`query_schedule`、`query_player_stats` 和 `query_match_detail`。
 - `chat_with_agent()` 已将 LangChain 内部消息转换为前端契约。
+- HTTP API 对空输入也返回统一的 `answer / tool_calls / error / result_payload` 结构，不让前端处理 FastAPI 默认 422 错误结构。
 - 命令行 `main()` 已复用统一入口。
 - `tests/test_minimal_agent.py` 使用 `FakeAgent` 做离线测试。
 - 当前离线测试覆盖：直接回答、历史传递、工具成功、工具失败、多工具、模型失败、空输入、三工具注册、系统提示约束和真实工具契约。
@@ -61,6 +65,8 @@
 | 暂不拆分复杂目录结构 | 先完成稳定行为，再按真实集成需要拆分 |
 | 当前接入 PR #2 工具但不直接合并 main | 先验证工具接口能被 Agent 使用，再决定是否在 GitHub 合并 PR |
 | LLM 负责选工具，代码负责格式化工具型最终回答 | 保证最终答案只包含工具返回字段，避免模型自由发挥 |
+| 使用 FastAPI 作为 React 前端和 Python Agent 的边界 | React 不能直接调用 Python 函数，HTTP API 是最小可联调方案 |
+| `result_payload` 当前返回 `null` | 前端文档标记该字段可选，先保证最小契约可用 |
 
 ## 用户学习状态
 
@@ -72,7 +78,7 @@
 ## 待确认信息
 
 - PR #2 中三个工具的数据真实性、字段稳定性和是否允许作为课程演示数据使用。
-- 田佳瑛选择的 Web 技术方案。
+- 田佳瑛 React 前端接入真实 `/api/chat` 的具体本地端口、代理或部署方式。
 - 真实世界杯数据来源及其稳定性。
 - 最终课程截止时间和各文档提交节点。
 
@@ -80,11 +86,13 @@
 
 - 仓库：`https://github.com/OllyPai/WorldCupAgent`
 - 队友工具 PR：`https://github.com/OllyPai/WorldCupAgent/pull/2`（已合并）
-- Agent 核心 PR：`https://github.com/OllyPai/WorldCupAgent/pull/3`（draft）
+- Agent 核心 PR：`https://github.com/OllyPai/WorldCupAgent/pull/3`（已合并）
+- API 适配 PR：`https://github.com/OllyPai/WorldCupAgent/pull/4`（ready for review，当前可合并）
 - 协作基线：`docs/team-alignment.md`
 - 前端交接：`docs/agent-handoff.md`
 - 启动说明：`README.md`
 - 当前核心实现：`agent.py`
+- 当前 HTTP 适配：`backend/app.py`
 - 当前 Agent 测试：`tests/test_minimal_agent.py`
 
 ---
