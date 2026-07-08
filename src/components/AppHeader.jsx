@@ -1,5 +1,5 @@
 import { Button, Space, Tag } from "antd";
-import { SearchOutlined, TrophyOutlined } from "@ant-design/icons";
+import { SearchOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import ThemeToggleButton from "./ThemeToggleButton";
 
@@ -11,32 +11,25 @@ function AppHeader() {
       <div className="brand-block">
         <div className="brand-mark">WC</div>
         <div>
-          <div className="brand-title">世界杯赛事智能体</div>
+          <div className="brand-title">世界杯赛事中心</div>
           <div className="brand-subtitle">
-            Match Query · Score · Goal Trace
+            实时赛程 · 球员数据 · 比赛详情
           </div>
         </div>
       </div>
 
       <nav className="header-nav">
-        <a href="#today">今日赛程</a>
-        <a href="#featured">热门赛事</a>
-        <a href="#query">快捷查询</a>
-        <a href="#agent">Agent 流程</a>
+        <a href="#home">首页</a>
+        <a href="#schedule">赛程查询</a>
+        <a href="#player">球员数据查询</a>
+        <a href="#detail">比赛详情查询</a>
       </nav>
 
       <Space size="middle">
-        <Tag color="cyan" className="header-tag">
-          DEMO MOCK
-        </Tag>
         <ThemeToggleButton />
-        <Button
-          type="default"
-          icon={<TrophyOutlined />}
-          onClick={() => navigate("/query?case=query-04")}
-        >
-          查看焦点战
-        </Button>
+        <Tag color="cyan" className="header-tag">
+          世界杯
+        </Tag>
         <Button
           type="primary"
           icon={<SearchOutlined />}

@@ -27,9 +27,8 @@ function ChatWorkspace({
   return (
     <Card className="query-chat-card" bordered={false}>
       <div className="section-headline">
-        <span className="section-kicker">Dialogue Interface</span>
-        <h2>让用户像聊天一样问，但返回的是可验证的赛事结果</h2>
-        <p>这里是你的核心职责页面，后续接后端后会直接承接真实问答流程。</p>
+        <span className="section-kicker">对话界面</span>
+        <h2>问你想问，获取赛程、球员数据或比赛详情</h2>
       </div>
 
       <div className="query-suggestion-row">
@@ -86,7 +85,7 @@ function ChatWorkspace({
 
       <div className="composer-wrap">
         <div className="composer-hint">
-          <Tag color="blue">Mock Query</Tag>
+          <Tag color="blue">示例问句</Tag>
           <span>{helperText}</span>
         </div>
         <TextArea
