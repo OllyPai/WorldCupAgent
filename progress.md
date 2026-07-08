@@ -1,10 +1,10 @@
 # WorldCupAgent 进度日志
 
-## 当前状态（2026-07-07）
+## 当前状态（2026-07-08）
 
 - **当前阶段：** 阶段 5——Web 联调
 - **分支：** `main`
-- **工作区：** API 适配层已合并到主分支；仍存在未跟踪的 `docs/proposal-report.md`、`output/`、`tmp/`
+- **工作区：** API 适配层已合并到主分支；正在按负责人逐个修复 `docs/known-issues.md` 中的问题；仍存在未跟踪的 `docs/proposal-report.md`、`docs/team-action-plan.md`、`output/`、`tmp/`
 - **外部依赖变化：** 队友工具 PR #2、Agent 核心 PR #3 和 API 适配 PR #4 均已合并到 GitHub `main`。
 
 ## 已完成记录
@@ -86,6 +86,17 @@
 - 已新增 `docs/frontend-ai-integration-guide.md`，面向前端同学和前端 AI 助手，说明真实 API 接入步骤、fetch 示例、AI 约束和联调验收清单。
 - 已新增 `docs/known-issues.md`，汇总当前 UI 文案、Trace 状态、Mock/示例数据边界、README 启动说明、正式文档和本地工作区问题。
 
+### 阶段 5C：按负责人逐个修复已知问题
+
+- **状态：** in_progress
+- 用户要求“一次解决一个问题”，并持续维护进度文档。
+- 当前先处理郑梓湃负责的 Agent 特殊输入兜底问题。
+- 已在 `agent.py` 增加前置兜底：
+  - 低信息输入（如纯符号）不调用模型，返回 `invalid_input`；
+  - 明显超出世界杯工具范围的问题不调用模型，返回 `unsupported_query`；
+  - 不把“某国进球最多的球员”硬拦截为不支持；该问题应通过李文杰新增工具暴露数据库排序能力，郑梓湃后续负责 Agent 注册和测试。
+- 已在 `tests/test_minimal_agent.py` 增加 2 条离线测试，验证低信息输入和明显超范围问题不会调用 `FakeAgent`。
+
 ## 测试结果
 
 | 日期 | 测试 | 结果 | 状态 |
@@ -114,6 +125,9 @@
 | 2026-07-07 | 合并 PR #4 后 `.venv/bin/python -m pytest -q` | 14 passed, 1 FastAPI TestClient 上游弃用警告 | 通过 |
 | 2026-07-07 | 合并 PR #4 后 `.venv/bin/python -m py_compile agent.py backend/app.py tools/*.py test_tools.py` | 无输出 | 通过 |
 | 2026-07-07 | 合并 PR #4 后 `git diff --check` | 无输出 | 通过 |
+| 2026-07-08 | `.venv/bin/python -m pytest tests/test_minimal_agent.py -q` | 12 passed | 通过 |
+| 2026-07-08 | `.venv/bin/python -m pytest -q` | 16 passed, 1 FastAPI TestClient 上游弃用警告 | 通过 |
+| 2026-07-08 | `.venv/bin/python -m py_compile agent.py backend/app.py tools/*.py test_tools.py` | 无输出 | 通过 |
 
 ## 错误日志
 
@@ -125,14 +139,15 @@
 | 2026-07-06 | 模型回答包含工具外事实 | 2 | Prompt 约束不足，改为工具型问题由代码格式化最终回答 |
 | 2026-07-07 | `git merge --no-commit --no-ff origin/feat/tools-data` 被沙盒禁止写 `.git/ORIG_HEAD.lock` | 1 | 授权后重试同一命令成功 |
 | 2026-07-07 | `.venv/bin/streamlit` 不存在 | 1 | 结合前端契约判断不应继续 Streamlit，改做 FastAPI |
+| 2026-07-08 | 直接执行 `session-catchup.py` 被系统拒绝权限 | 1 | 改用 `python3 .../session-catchup.py` 执行，恢复报告读取成功 |
 
 ## 下一工作块
 
-1. 把 `docs/frontend-ai-integration-guide.md` 发给前端队友接入；
-2. 按 `docs/known-issues.md` 修复前端展示和文案问题；
-3. 与前端完成浏览器端真实联调；
-4. 汇总系统测试用例和缺陷记录；
-5. 用户复述 `React → FastAPI → chat_with_agent → Agent → Tool → response` 数据流。
+1. 确认是否提交当前“特殊输入兜底”修复；
+2. 下一个郑梓湃负责问题：README 补完整前端启动、后端启动、测试和常见问题说明；
+3. 后续再处理前后端最终联调确认；
+4. 等李文杰完成工具扩展后，再注册“某国进球最多球员”工具并补测试；
+5. 汇总系统测试用例和缺陷记录。
 
 ## 学习证据
 

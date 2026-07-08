@@ -194,6 +194,28 @@ def test_empty_input_does_not_call_agent():
     assert fake_agent.last_input is None
 
 
+def test_low_information_input_does_not_call_agent():
+    fake_agent = FakeAgent()
+
+    result = chat_with_agent("???###", agent=fake_agent)
+
+    assert result["answer"] == "请输入明确的世界杯查询问题，例如：请查询巴西队赛程。"
+    assert result["tool_calls"] == []
+    assert result["error"] == "invalid_input"
+    assert fake_agent.last_input is None
+
+
+def test_obviously_unsupported_query_does_not_call_agent():
+    fake_agent = FakeAgent()
+
+    result = chat_with_agent("帮我写一段 C++ 排序代码", agent=fake_agent)
+
+    assert "当前系统主要支持世界杯赛程查询" in result["answer"]
+    assert result["tool_calls"] == []
+    assert result["error"] == "unsupported_query"
+    assert fake_agent.last_input is None
+
+
 def test_agent_registers_three_world_cup_tools():
     tool_names = {tool.name for tool in WORLD_CUP_TOOLS}
 

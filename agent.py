@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from typing import Any
 
 from dotenv import load_dotenv
@@ -24,6 +25,12 @@ SYSTEM_PROMPT = (
     "当前数据来自本地 SQLite 课程演示数据库，不代表官方实时数据。"
 )
 
+SUPPORTED_SCOPE_ANSWER = (
+    "当前系统主要支持世界杯赛程查询、球员数据查询和比赛详情查询。"
+    "你可以这样提问：请查询巴西队赛程；请查询梅西的世界杯进球数据；"
+    "请查询阿根廷和佛得角的比赛详情。"
+)
+
 
 def build_agent():
     api_key = os.getenv("DEEPSEEK_API_KEY")
@@ -45,6 +52,86 @@ def build_agent():
         tools=WORLD_CUP_TOOLS,
         system_prompt=SYSTEM_PROMPT,
     )
+
+
+def _contains_meaningful_characters(text: str) -> bool:
+    return any(char.isalnum() or "\u4e00" <= char <= "\u9fff" for char in text)
+
+
+def _is_low_information_input(text: str) -> bool:
+    compact_text = re.sub(r"\s+", "", text)
+
+    if not _contains_meaningful_characters(compact_text):
+        return True
+
+    if re.fullmatch(r"[A-Za-z0-9_!?.,;:#@$%^&*()+=\\/-]{1,20}", compact_text):
+        return compact_text.lower() not in {"hi", "hello", "help"}
+
+    return False
+
+
+def _is_obviously_unsupported_query(text: str) -> bool:
+    world_cup_keywords = {
+        "世界杯",
+        "赛程",
+        "比赛",
+        "比分",
+        "进球",
+        "助攻",
+        "出场",
+        "球员",
+        "球队",
+        "小组赛",
+        "决赛",
+        "阿根廷",
+        "巴西",
+        "法国",
+        "德国",
+        "西班牙",
+        "葡萄牙",
+        "梅西",
+        "姆巴佩",
+        "C罗",
+        "哈兰德",
+    }
+    unsupported_keywords = {
+        "天气",
+        "股票",
+        "股价",
+        "汇率",
+        "翻译",
+        "写代码",
+        "代码",
+        "论文",
+        "电影",
+        "菜谱",
+        "旅游",
+        "新闻",
+    }
+
+    return any(keyword in text for keyword in unsupported_keywords) and not any(
+        keyword in text for keyword in world_cup_keywords
+    )
+
+
+def _special_input_response(user_input: str) -> dict[str, Any] | None:
+    text = user_input.strip()
+
+    if _is_low_information_input(text):
+        return {
+            "answer": "请输入明确的世界杯查询问题，例如：请查询巴西队赛程。",
+            "tool_calls": [],
+            "error": "invalid_input",
+        }
+
+    if _is_obviously_unsupported_query(text):
+        return {
+            "answer": SUPPORTED_SCOPE_ANSWER,
+            "tool_calls": [],
+            "error": "unsupported_query",
+        }
+
+    return None
 
 
 def _tool_result_summary(content: Any) -> tuple[str, str]:
@@ -172,6 +259,10 @@ def chat_with_agent(
             "tool_calls": [],
             "error": "user_input 不能为空",
         }
+
+    special_response = _special_input_response(user_input)
+    if special_response is not None:
+        return special_response
 
     messages = [*(history or []), {"role": "user", "content": user_input.strip()}]
 
