@@ -3,7 +3,15 @@ import json
 from langchain_core.messages import AIMessage, ToolMessage
 
 from agent import SYSTEM_PROMPT, WORLD_CUP_TOOLS, chat_with_agent
-from tools import query_match_detail, query_player_stats, query_players, query_schedule
+from tools import (
+    query_best_goalkeeper,
+    query_match_detail,
+    query_player_stats,
+    query_players,
+    query_schedule,
+    query_top10_scorers,
+    query_top_scorer_by_team,
+)
 
 
 class FakeAgent:
@@ -448,7 +456,7 @@ def test_obviously_unsupported_query_does_not_call_agent():
     assert fake_agent.last_input is None
 
 
-def test_agent_registers_four_world_cup_tools():
+def test_agent_registers_world_cup_tools():
     tool_names = {tool.name for tool in WORLD_CUP_TOOLS}
 
     assert tool_names == {
@@ -456,6 +464,9 @@ def test_agent_registers_four_world_cup_tools():
         "query_player_stats",
         "query_players",
         "query_match_detail",
+        "query_top_scorer_by_team",
+        "query_best_goalkeeper",
+        "query_top10_scorers",
     }
 
 
@@ -464,6 +475,7 @@ def test_system_prompt_limits_answer_to_tool_results():
     assert "不要补充背景知识" in SYSTEM_PROMPT
     assert "不得根据赛程自行推断" in SYSTEM_PROMPT
     assert "只有用户明确说“分别”或“各自”" in SYSTEM_PROMPT
+    assert "门将扑救" in SYSTEM_PROMPT
     assert "球员排行" in SYSTEM_PROMPT
     assert "当前数据来自系统数据库" in SYSTEM_PROMPT
 
@@ -474,6 +486,9 @@ def test_real_tools_return_standard_contract():
         query_player_stats.invoke({"player_name": "梅西"}),
         query_players.invoke({"sort_by": "goals", "limit": 1}),
         query_match_detail.invoke({"home_team": "阿根廷", "away_team": "佛得角"}),
+        query_top_scorer_by_team.invoke({"team": "阿根廷"}),
+        query_best_goalkeeper.invoke({}),
+        query_top10_scorers.invoke({}),
     ]
 
     for result in results:
@@ -501,3 +516,33 @@ def test_real_query_players_returns_goal_ranking():
     assert len(players) == 3
     assert players[0]["goals"] >= players[1]["goals"] >= players[2]["goals"]
     assert result["data"]["sort_by"] == "goals"
+
+
+def test_player_aliases_keep_common_names_working():
+    result = query_player_stats.invoke({"player_name": "梅西"})
+
+    assert result["success"] is True
+    assert result["data"]["player_name"] == "利昂内尔・梅西"
+    assert result["data"]["goals"] == 8
+
+
+def test_match_detail_goal_fallback_keeps_cristiano_ronaldo_query_working():
+    result = query_player_stats.invoke({"player_name": "C罗"})
+
+    assert result["success"] is True
+    assert result["data"]["player_name"] == "C罗"
+    assert result["data"]["team"] == "葡萄牙"
+    assert result["data"]["goals"] >= 1
+
+
+def test_real_business_tools_return_rankings():
+    top_scorer = query_top_scorer_by_team.invoke({"team": "阿根廷"})
+    best_goalkeeper = query_best_goalkeeper.invoke({})
+    top10 = query_top10_scorers.invoke({})
+
+    assert top_scorer["success"] is True
+    assert top_scorer["data"]["top_scorer"]["team"] == "阿根廷"
+    assert best_goalkeeper["success"] is True
+    assert best_goalkeeper["data"]["best_goalkeeper"]["saves"] >= 1
+    assert top10["success"] is True
+    assert len(top10["data"]["top10_scorers"]) == 10

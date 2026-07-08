@@ -8,7 +8,15 @@ from langchain.agents import create_agent
 from langchain_core.messages import AIMessage, ToolMessage
 from langchain_deepseek import ChatDeepSeek
 
-from tools import query_match_detail, query_player_stats, query_players, query_schedule
+from tools import (
+    query_best_goalkeeper,
+    query_match_detail,
+    query_player_stats,
+    query_players,
+    query_schedule,
+    query_top10_scorers,
+    query_top_scorer_by_team,
+)
 
 
 load_dotenv()
@@ -19,11 +27,14 @@ WORLD_CUP_TOOLS = [
     query_player_stats,
     query_players,
     query_match_detail,
+    query_top_scorer_by_team,
+    query_best_goalkeeper,
+    query_top10_scorers,
 ]
 
 SYSTEM_PROMPT = (
     "你是世界杯数据助手。"
-    "所有赛程、球员统计、球员排行、比赛详情问题必须调用对应工具。"
+    "所有赛程、球员统计、球员排行、队内最佳射手、门将扑救、比赛详情问题必须调用对应工具。"
     "工具返回是唯一事实来源；最终回答只能复述、比较或整理工具返回的字段。"
     "如果用户追问比较问题，可以结合本轮工具结果和历史对话中已经由助手返回过的工具结果。"
     "如果工具没有返回某个事实，就明确说明当前本地数据没有该字段。"
@@ -34,10 +45,11 @@ SYSTEM_PROMPT = (
     "只有用户明确说“分别”或“各自”时，才分别查询两支球队赛程。"
     "当前数据来自系统数据库。"
     "如果用户询问表现最好、最强、最佳球员等模糊评价，需要说明评价标准，优先提示可按进球、助攻或出场次数查询。"
+    "如果用户询问最佳门将、门神或扑救最多门将，应调用门将扑救工具。"
 )
 
 SUPPORTED_SCOPE_ANSWER = (
-    "当前系统主要支持世界杯赛程查询、球员数据查询、球员排行查询和比赛详情查询。"
+    "当前系统主要支持世界杯赛程查询、球员数据查询、球员排行查询、门将扑救查询和比赛详情查询。"
     "你可以这样提问：请查询巴西队赛程；请查询梅西的世界杯进球数据；"
     "谁是进球最多的球员；请查询阿根廷和佛得角的比赛详情。"
 )
@@ -151,8 +163,8 @@ def _is_obviously_unsupported_query(text: str) -> bool:
 
 
 def _is_ambiguous_player_evaluation_query(text: str) -> bool:
-    ambiguous_keywords = {"表现最好", "最强", "最佳球员", "最佳门将", "谁最好"}
-    metric_keywords = {"进球", "助攻", "出场", "射手", "排名", "榜"}
+    ambiguous_keywords = {"表现最好", "最强", "最佳球员", "谁最好"}
+    metric_keywords = {"进球", "助攻", "出场", "射手", "排名", "榜", "门将", "门神", "扑救"}
 
     return any(keyword in text for keyword in ambiguous_keywords) and not any(
         keyword in text for keyword in metric_keywords
@@ -310,6 +322,12 @@ def _format_player_stats(data: Any) -> str:
         ("进球", data.get("goals")),
         ("助攻", data.get("assists")),
         ("出场次数", data.get("appearances")),
+        ("总出场分钟", data.get("total_minutes")),
+        ("场均出场分钟", data.get("avg_minutes")),
+        ("红牌", data.get("red_cards")),
+        ("黄牌", data.get("yellow_cards")),
+        ("扑救次数", data.get("saves")),
+        ("扑救成功率", data.get("save_rate")),
     ]
     lines = ["球员数据查询结果（当前数据库）："]
     lines.extend(f"- {name}：{value}" for name, value in fields if value is not None)
@@ -345,6 +363,67 @@ def _format_players(data: Any) -> str:
             f"出场 {player.get('appearances')}"
         )
 
+    return "\n".join(lines)
+
+
+def _format_top_scorer_by_team(data: Any) -> str:
+    if not isinstance(data, dict):
+        return f"队内射手查询结果：{json.dumps(data, ensure_ascii=False)}"
+
+    player = data.get("top_scorer")
+    if not isinstance(player, dict):
+        return f"队内射手查询结果：{json.dumps(data, ensure_ascii=False)}"
+
+    lines = [f"{data.get('team')}队内最佳射手（当前数据库）："]
+    lines.append(
+        f"- 球员：{player.get('player_name')}（{player.get('team')}）"
+    )
+    lines.append(f"- 进球：{player.get('goals')}")
+    lines.append(f"- 助攻：{player.get('assists')}")
+    lines.append(f"- 出场次数：{player.get('appearances')}")
+    if player.get("total_minutes") is not None:
+        lines.append(f"- 总出场分钟：{player.get('total_minutes')}")
+    if player.get("avg_minutes") is not None:
+        lines.append(f"- 场均出场分钟：{player.get('avg_minutes')}")
+    return "\n".join(lines)
+
+
+def _format_top10_scorers(data: Any) -> str:
+    if not isinstance(data, dict):
+        return f"射手榜查询结果：{json.dumps(data, ensure_ascii=False)}"
+
+    players = data.get("top10_scorers")
+    if not isinstance(players, list):
+        return f"射手榜查询结果：{json.dumps(data, ensure_ascii=False)}"
+
+    lines = ["射手榜查询结果（当前数据库，按进球排序）："]
+    for index, player in enumerate(players, start=1):
+        if not isinstance(player, dict):
+            lines.append(f"{index}. {player}")
+            continue
+        lines.append(
+            f"{index}. {player.get('player_name')}（{player.get('team')}）："
+            f"进球 {player.get('goals')}，"
+            f"助攻 {player.get('assists')}，"
+            f"出场 {player.get('appearances')}"
+        )
+    return "\n".join(lines)
+
+
+def _format_best_goalkeeper(data: Any) -> str:
+    if not isinstance(data, dict):
+        return f"门将扑救查询结果：{json.dumps(data, ensure_ascii=False)}"
+
+    goalkeeper = data.get("best_goalkeeper")
+    if not isinstance(goalkeeper, dict):
+        return f"门将扑救查询结果：{json.dumps(data, ensure_ascii=False)}"
+
+    lines = ["门将扑救查询结果（当前数据库）："]
+    lines.append(
+        f"- 门将：{goalkeeper.get('player_name')}（{goalkeeper.get('team')}）"
+    )
+    lines.append(f"- 扑救次数：{goalkeeper.get('saves')}")
+    lines.append(f"- 扑救成功率：{goalkeeper.get('save_rate')}")
     return "\n".join(lines)
 
 
@@ -390,6 +469,9 @@ def _format_tool_answer(tool_calls: list[dict[str, Any]]) -> str:
                 "query_player_stats": "球员数据查询",
                 "query_players": "球员排行查询",
                 "query_match_detail": "比赛详情查询",
+                "query_top_scorer_by_team": "队内射手查询",
+                "query_best_goalkeeper": "门将扑救查询",
+                "query_top10_scorers": "射手榜查询",
             }
             label = tool_labels.get(call["tool"], call["tool"])
             sections.append(f"{label}失败：{call['summary']}")
@@ -404,6 +486,12 @@ def _format_tool_answer(tool_calls: list[dict[str, Any]]) -> str:
             sections.append(_format_players(data))
         elif call["tool"] == "query_match_detail":
             sections.append(_format_match_detail(data))
+        elif call["tool"] == "query_top_scorer_by_team":
+            sections.append(_format_top_scorer_by_team(data))
+        elif call["tool"] == "query_best_goalkeeper":
+            sections.append(_format_best_goalkeeper(data))
+        elif call["tool"] == "query_top10_scorers":
+            sections.append(_format_top10_scorers(data))
         else:
             sections.append(f"{call['tool']} 查询结果：{call['summary']}")
 
@@ -430,7 +518,14 @@ def _should_use_formatter(
     if _contains_unsupported_inference(answer):
         return True
 
-    stable_formatter_tools = {"query_schedule", "query_match_detail"}
+    stable_formatter_tools = {
+        "query_schedule",
+        "query_match_detail",
+        "query_players",
+        "query_top_scorer_by_team",
+        "query_best_goalkeeper",
+        "query_top10_scorers",
+    }
     if any(call["tool"] in stable_formatter_tools for call in tool_calls):
         return True
 

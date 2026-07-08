@@ -1,6 +1,7 @@
 from langchain.tools import tool
 
 from .db_helper import get_db_connection
+from .player_aliases import player_name_candidates
 
 
 ALLOWED_SORT_FIELDS = {"goals", "assists", "appearances"}
@@ -46,8 +47,11 @@ def query_players(
         params = []
 
         if player_name:
-            sql += " AND player_name = ?"
-            params.append(player_name)
+            candidates = player_name_candidates(player_name)
+            placeholders = ", ".join("?" for _ in candidates)
+            sql += f" AND (player_name IN ({placeholders}) OR player_name LIKE ?)"
+            params.extend(candidates)
+            params.append(f"%{player_name}%")
         if team:
             sql += " AND team = ?"
             params.append(team)
