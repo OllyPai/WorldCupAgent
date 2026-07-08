@@ -8,27 +8,63 @@ from langchain.agents import create_agent
 from langchain_core.messages import AIMessage, ToolMessage
 from langchain_deepseek import ChatDeepSeek
 
-from tools import query_match_detail, query_player_stats, query_schedule
+from tools import query_match_detail, query_player_stats, query_players, query_schedule
 
 
 load_dotenv()
 
 
-WORLD_CUP_TOOLS = [query_schedule, query_player_stats, query_match_detail]
+WORLD_CUP_TOOLS = [
+    query_schedule,
+    query_player_stats,
+    query_players,
+    query_match_detail,
+]
 
 SYSTEM_PROMPT = (
     "你是世界杯数据助手。"
-    "所有赛程、球员统计、比赛详情问题必须调用对应工具。"
-    "工具返回是唯一事实来源；最终回答只能复述或整理工具返回的字段。"
+    "所有赛程、球员统计、球员排行、比赛详情问题必须调用对应工具。"
+    "工具返回是唯一事实来源；最终回答只能复述、比较或整理工具返回的字段。"
+    "如果用户追问比较问题，可以结合本轮工具结果和历史对话中已经由助手返回过的工具结果。"
     "如果工具没有返回某个事实，就明确说明当前本地数据没有该字段。"
     "不要补充背景知识、历史纪录、预测、实时新闻或工具外事实。"
-    "当前数据来自本地 SQLite 课程演示数据库，不代表官方实时数据。"
+    "不得根据赛程自行推断球队是否参赛、晋级、出线、淘汰、止步、小组排名或战绩。"
+    "如果某个球队没有查到赛程，只能说当前数据库未查询到该球队赛程。"
+    "当用户询问“X和Y的比赛详情、对阵、交手”时，应查询单场比赛详情；"
+    "只有用户明确说“分别”或“各自”时，才分别查询两支球队赛程。"
+    "当前数据来自系统数据库。"
+    "如果用户询问表现最好、最强、最佳球员等模糊评价，需要说明评价标准，优先提示可按进球、助攻或出场次数查询。"
 )
 
 SUPPORTED_SCOPE_ANSWER = (
-    "当前系统主要支持世界杯赛程查询、球员数据查询和比赛详情查询。"
+    "当前系统主要支持世界杯赛程查询、球员数据查询、球员排行查询和比赛详情查询。"
     "你可以这样提问：请查询巴西队赛程；请查询梅西的世界杯进球数据；"
-    "请查询阿根廷和佛得角的比赛详情。"
+    "谁是进球最多的球员；请查询阿根廷和佛得角的比赛详情。"
+)
+
+AMBIGUOUS_EVALUATION_ANSWER = (
+    "这个问题需要先明确评价标准。当前系统可以按进球、助攻或出场次数查询和比较球员；"
+    "例如你可以问：谁进球最多？谁助攻最多？谁出场次数最多？"
+)
+
+UNSUPPORTED_INFERENCE_KEYWORDS = (
+    "可能未参加",
+    "可能没有参加",
+    "未参加",
+    "没有参加",
+    "未晋级",
+    "没有晋级",
+    "晋级",
+    "出线",
+    "淘汰",
+    "止步",
+    "惜败",
+    "落败",
+    "战绩",
+    "小组第一",
+    "小组第二",
+    "小组第三",
+    "小组第四",
 )
 
 
@@ -114,6 +150,15 @@ def _is_obviously_unsupported_query(text: str) -> bool:
     )
 
 
+def _is_ambiguous_player_evaluation_query(text: str) -> bool:
+    ambiguous_keywords = {"表现最好", "最强", "最佳球员", "最佳门将", "谁最好"}
+    metric_keywords = {"进球", "助攻", "出场", "射手", "排名", "榜"}
+
+    return any(keyword in text for keyword in ambiguous_keywords) and not any(
+        keyword in text for keyword in metric_keywords
+    )
+
+
 def _special_input_response(user_input: str) -> dict[str, Any] | None:
     text = user_input.strip()
 
@@ -131,7 +176,85 @@ def _special_input_response(user_input: str) -> dict[str, Any] | None:
             "error": "unsupported_query",
         }
 
+    if _is_ambiguous_player_evaluation_query(text):
+        return {
+            "answer": AMBIGUOUS_EVALUATION_ANSWER,
+            "tool_calls": [],
+            "error": None,
+        }
+
     return None
+
+
+def _extract_matchup_detail_request(text: str) -> tuple[str, str] | None:
+    if "分别" in text or "各自" in text:
+        return None
+
+    normalized = text.strip()
+    for prefix in ("请帮我查询", "帮我查询", "请查询", "查询", "请查看", "查看", "查一下", "请查", "查"):
+        if normalized.startswith(prefix):
+            normalized = normalized[len(prefix):].strip()
+            break
+
+    suffixes = (
+        "的比赛详情",
+        "比赛详情",
+        "的对阵详情",
+        "对阵详情",
+        "的交手详情",
+        "交手详情",
+        "的对阵",
+        "对阵",
+        "的交手",
+        "交手",
+    )
+    subject = None
+    for suffix in suffixes:
+        if normalized.endswith(suffix):
+            subject = normalized[: -len(suffix)].strip()
+            break
+
+    if not subject or "和" not in subject:
+        return None
+
+    team_a, team_b = subject.split("和", 1)
+    team_a = team_a.strip()
+    team_b = team_b.strip()
+    if not team_a or not team_b:
+        return None
+
+    return team_a, team_b
+
+
+def _direct_matchup_detail_response(user_input: str) -> dict[str, Any] | None:
+    matchup = _extract_matchup_detail_request(user_input)
+    if matchup is None:
+        return None
+
+    home_team, away_team = matchup
+    raw_result = query_match_detail.invoke(
+        {"home_team": home_team, "away_team": away_team}
+    )
+    status, summary, data = _parse_tool_result(raw_result)
+    tool_calls = [
+        {
+            "tool": "query_match_detail",
+            "input": {"home_team": home_team, "away_team": away_team},
+            "status": status,
+            "summary": summary,
+            "_data": data,
+        }
+    ]
+    answer = _format_tool_answer(tool_calls)
+
+    for call in tool_calls:
+        call.pop("_data", None)
+
+    return {
+        "answer": answer,
+        "tool_calls": tool_calls,
+        "error": None,
+    }
 
 
 def _tool_result_summary(content: Any) -> tuple[str, str]:
@@ -160,7 +283,7 @@ def _format_schedule(data: Any) -> str:
     if not isinstance(data, list):
         return f"赛程查询结果：{json.dumps(data, ensure_ascii=False)}"
 
-    lines = ["赛程查询结果（本地课程演示数据库）："]
+    lines = ["赛程查询结果（当前数据库）："]
     for match in data:
         if not isinstance(match, dict):
             lines.append(f"- {match}")
@@ -188,8 +311,40 @@ def _format_player_stats(data: Any) -> str:
         ("助攻", data.get("assists")),
         ("出场次数", data.get("appearances")),
     ]
-    lines = ["球员数据查询结果（本地课程演示数据库）："]
+    lines = ["球员数据查询结果（当前数据库）："]
     lines.extend(f"- {name}：{value}" for name, value in fields if value is not None)
+    return "\n".join(lines)
+
+
+def _format_players(data: Any) -> str:
+    if not isinstance(data, dict):
+        return f"球员列表查询结果：{json.dumps(data, ensure_ascii=False)}"
+
+    players = data.get("players")
+    if not isinstance(players, list):
+        return f"球员列表查询结果：{json.dumps(data, ensure_ascii=False)}"
+
+    sort_labels = {
+        "goals": "进球",
+        "assists": "助攻",
+        "appearances": "出场次数",
+    }
+    sort_by = data.get("sort_by")
+    sort_label = sort_labels.get(sort_by, sort_by or "统计字段")
+
+    lines = [f"球员排行查询结果（当前数据库，按{sort_label}排序）："]
+    for index, player in enumerate(players, start=1):
+        if not isinstance(player, dict):
+            lines.append(f"{index}. {player}")
+            continue
+
+        lines.append(
+            f"{index}. {player.get('player_name')}（{player.get('team')}）："
+            f"进球 {player.get('goals')}，"
+            f"助攻 {player.get('assists')}，"
+            f"出场 {player.get('appearances')}"
+        )
+
     return "\n".join(lines)
 
 
@@ -199,7 +354,7 @@ def _format_match_detail(data: Any) -> str:
 
     score = f"{data.get('home_score')}:{data.get('away_score')}"
     lines = [
-        "比赛详情查询结果（本地课程演示数据库）：",
+        "比赛详情查询结果（当前数据库）：",
         f"- 比赛ID：{data.get('match_id')}",
         f"- 时间：{data.get('match_date')} {data.get('match_time')}",
         f"- 阶段：{data.get('stage')}",
@@ -230,7 +385,14 @@ def _format_tool_answer(tool_calls: list[dict[str, Any]]) -> str:
 
     for call in tool_calls:
         if call["status"] == "error":
-            sections.append(f"{call['tool']} 调用失败：{call['summary']}")
+            tool_labels = {
+                "query_schedule": "赛程查询",
+                "query_player_stats": "球员数据查询",
+                "query_players": "球员排行查询",
+                "query_match_detail": "比赛详情查询",
+            }
+            label = tool_labels.get(call["tool"], call["tool"])
+            sections.append(f"{label}失败：{call['summary']}")
             continue
 
         data = call.get("_data")
@@ -238,12 +400,44 @@ def _format_tool_answer(tool_calls: list[dict[str, Any]]) -> str:
             sections.append(_format_schedule(data))
         elif call["tool"] == "query_player_stats":
             sections.append(_format_player_stats(data))
+        elif call["tool"] == "query_players":
+            sections.append(_format_players(data))
         elif call["tool"] == "query_match_detail":
             sections.append(_format_match_detail(data))
         else:
             sections.append(f"{call['tool']} 查询结果：{call['summary']}")
 
     return "\n\n".join(sections)
+
+
+def _contains_unsupported_inference(answer: str) -> bool:
+    return any(keyword in answer for keyword in UNSUPPORTED_INFERENCE_KEYWORDS)
+
+
+def _is_comparison_query(text: str) -> bool:
+    comparison_keywords = {"谁进球多", "谁更多", "哪个更多", "谁更高", "比较", "对比"}
+    return any(keyword in text for keyword in comparison_keywords) or (
+        "和" in text and "谁" in text and ("多" in text or "高" in text)
+    )
+
+
+def _should_use_formatter(
+    user_input: str, answer: str, tool_calls: list[dict[str, Any]]
+) -> bool:
+    if not answer:
+        return True
+
+    if _contains_unsupported_inference(answer):
+        return True
+
+    stable_formatter_tools = {"query_schedule", "query_match_detail"}
+    if any(call["tool"] in stable_formatter_tools for call in tool_calls):
+        return True
+
+    if all(call["tool"] == "query_player_stats" for call in tool_calls):
+        return not _is_comparison_query(user_input)
+
+    return False
 
 
 def chat_with_agent(
@@ -263,6 +457,10 @@ def chat_with_agent(
     special_response = _special_input_response(user_input)
     if special_response is not None:
         return special_response
+
+    direct_response = _direct_matchup_detail_response(user_input)
+    if direct_response is not None:
+        return direct_response
 
     messages = [*(history or []), {"role": "user", "content": user_input.strip()}]
 
@@ -303,7 +501,7 @@ def chat_with_agent(
                 record["summary"] = summary
                 record["_data"] = data
 
-    if tool_calls:
+    if tool_calls and _should_use_formatter(user_input, answer, tool_calls):
         answer = _format_tool_answer(tool_calls)
 
     for call in tool_calls:
