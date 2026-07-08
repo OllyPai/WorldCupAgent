@@ -2,20 +2,22 @@
 
 世界杯工具调用智能体课程项目。
 
-当前版本实现了一个基于 LangChain + DeepSeek 的 Agent 核心，可以根据用户自然语言问题调用本地工具查询赛程、球员数据和比赛详情。
+当前系统实现了一个基于 LangChain + DeepSeek 的 Agent：用户用自然语言提问，Agent 判断是否需要调用工具，再从本地 SQLite 课程演示数据库中查询赛程、球员数据或比赛详情，并返回给前端展示。
+
+当前数据来自 `tools/worldcup.db`，定位为课程演示数据，不代表官方实时数据。
 
 ## 当前能力
 
-- 自然语言输入；
+- 自然语言问答入口；
 - 自动选择工具；
-- 三个工具：赛程查询、球员数据查询、比赛详情查询；
-- 统一返回 `answer / tool_calls / error`；
-- 工具型回答只基于工具返回字段生成；
-- 离线自动测试与真实 API 冒烟测试分离。
+- 三个已注册工具：赛程查询、球员数据查询、比赛详情查询；
+- FastAPI HTTP 接口：`GET /api/health`、`POST /api/chat`；
+- 统一返回 `answer / tool_calls / error / result_payload`；
+- 工具型回答只基于工具返回字段生成，避免模型补充工具外事实；
+- 对空输入、纯符号输入、明显超出世界杯范围的问题有前置兜底；
+- 后端离线测试与真实模型冒烟测试分离。
 
-当前数据来自 `tools/worldcup.db`，属于课程演示数据库，不代表官方实时数据。
-
-## 环境准备
+## 快速启动后端
 
 推荐 Python 3.12。
 
@@ -23,15 +25,13 @@
 python3.12 -m venv .venv
 ```
 
-fish shell：
+激活虚拟环境：
 
 ```bash
+# fish
 source .venv/bin/activate.fish
-```
 
-bash/zsh：
-
-```bash
+# bash / zsh
 source .venv/bin/activate
 ```
 
@@ -53,76 +53,222 @@ cp .env.example .env
 DEEPSEEK_API_KEY=your_deepseek_api_key_here
 ```
 
-## 运行
-
-命令行 Demo：
-
-```bash
-python agent.py
-```
-
-HTTP API：
+启动后端：
 
 ```bash
 uvicorn backend.app:app --reload --port 8000
 ```
 
-工具自测：
+验证后端在线：
+
+```bash
+curl http://localhost:8000/api/health
+```
+
+期望返回：
+
+```json
+{"status":"ok"}
+```
+
+FastAPI 自动接口文档：
+
+```text
+http://localhost:8000/docs
+```
+
+## 启动前端
+
+前端代码位于 `frontend/`。
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Vite 默认会输出本地访问地址，通常是：
+
+```text
+http://localhost:5173
+```
+
+如果前端需要显式配置后端地址，可在 `frontend/.env.local` 中写入：
+
+```env
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+## API 调用示例
+
+聊天接口：
+
+```http
+POST http://localhost:8000/api/chat
+Content-Type: application/json
+```
+
+请求体：
+
+```json
+{
+  "user_input": "请查询梅西的世界杯进球数据",
+  "history": []
+}
+```
+
+返回体：
+
+```json
+{
+  "answer": "给用户看的回答",
+  "tool_calls": [
+    {
+      "tool": "query_player_stats",
+      "input": {"player_name": "梅西"},
+      "status": "success",
+      "summary": "工具结果摘要"
+    }
+  ],
+  "error": null,
+  "result_payload": null
+}
+```
+
+可直接测试的 curl：
+
+```bash
+curl -X POST http://localhost:8000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"user_input":"请查询梅西的世界杯进球数据","history":[]}'
+```
+
+赛程查询：
+
+```bash
+curl -X POST http://localhost:8000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"user_input":"请查询巴西队赛程","history":[]}'
+```
+
+比赛详情查询：
+
+```bash
+curl -X POST http://localhost:8000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"user_input":"请查询阿根廷和佛得角的比赛详情","history":[]}'
+```
+
+特殊输入兜底：
+
+```bash
+curl -X POST http://localhost:8000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"user_input":"???###","history":[]}'
+```
+
+## 运行测试
+
+工具层自测：
 
 ```bash
 python test_tools.py
 ```
 
-自动测试：
+后端自动测试：
 
 ```bash
 python -m pytest -q
 ```
 
-## Agent 接口
+前端构建检查：
 
-```python
-from agent import chat_with_agent
-
-result = chat_with_agent(
-    user_input="请查询梅西的世界杯进球数据",
-    history=[],
-)
+```bash
+cd frontend
+npm run build
 ```
 
-返回：
+## 当前前后端契约
 
-```python
-{
-    "answer": "给用户看的回答",
-    "tool_calls": [
-        {
-            "tool": "query_player_stats",
-            "input": {"player_name": "梅西"},
-            "status": "success",
-            "summary": "..."
-        }
-    ],
-    "error": None,
-}
-```
+前端只需要先消费这些字段：
 
-更多前端对接说明见：
+| 字段 | 用途 |
+|---|---|
+| `answer` | 聊天气泡主内容 |
+| `tool_calls` | Trace 面板 / 工具调用过程 |
+| `error` | 不为空时展示错误提示 |
+| `result_payload` | 当前固定为 `null`，暂不作为核心展示依赖 |
+
+详细前端接入说明见：
 
 - `docs/agent-handoff.md`
 - `docs/frontend-ai-integration-guide.md`
 
+## 常见问题
+
+### fish 激活虚拟环境报错
+
+如果使用 fish shell，不要执行：
+
+```bash
+source .venv/bin/activate
+```
+
+应执行：
+
+```bash
+source .venv/bin/activate.fish
+```
+
+### `DEEPSEEK_API_KEY` 未配置
+
+真实模型调用需要 `.env` 中存在：
+
+```env
+DEEPSEEK_API_KEY=your_deepseek_api_key_here
+```
+
+如果只跑离线自动测试，通常不会请求真实模型。
+
+### 前端请求失败
+
+先确认后端是否启动：
+
+```bash
+curl http://localhost:8000/api/health
+```
+
+如果健康检查失败，先启动：
+
+```bash
+uvicorn backend.app:app --reload --port 8000
+```
+
+### `tool_calls` 为空
+
+这是允许的。用户问候、能力说明、空输入或明显无效输入可能不需要调用工具，前端正常展示 `answer` 和 `error` 即可。
+
+### `result_payload` 是 `null`
+
+这是当前设计。现阶段前端先用 `answer` 展示主结果，用 `tool_calls` 展示工具过程；结构化卡片后续再单独约定。
+
+### 查询不到“某国进球最多的球员”
+
+数据库可以通过排序得到这类结果，但当前还没有暴露对应工具。后续应由工具层新增类似 `query_top_scorer_by_team` 的接口，再由 Agent 注册使用。
+
 ## 项目结构
 
 ```text
-agent.py                  # Agent 核心与统一入口
-backend/app.py            # FastAPI HTTP 适配层
-tools/                    # 三个工具与 SQLite 数据库
-tests/test_minimal_agent.py
-docs/team-alignment.md    # 小组接口与协作基线
-docs/agent-handoff.md     # 前端对接说明
+agent.py                          # Agent 核心与统一入口
+backend/app.py                    # FastAPI HTTP 适配层
+tools/                            # 三个工具与 SQLite 数据库
+tests/test_minimal_agent.py       # Agent 离线测试
+test_tools.py                     # 工具层自测
+frontend/                         # React + Vite 前端
+docs/agent-handoff.md             # 后端给前端的接口交接
 docs/frontend-ai-integration-guide.md
-task_plan.md              # 项目计划
-progress.md               # 进度日志
-findings.md               # 发现与决策
+docs/known-issues.md              # 当前已知问题清单
+task_plan.md                      # 项目计划
+progress.md                       # 进度日志
+findings.md                       # 发现与决策
 ```
