@@ -17,9 +17,9 @@ function QueryTopBar({ activeLabel }) {
 
       <Space wrap>
         <ThemeToggleButton />
-        <Tag color="cyan">当前示例 · {activeLabel}</Tag>
+        <Tag color="cyan">当前查询 · {activeLabel}</Tag>
         <Tag color="green" icon={<ApiOutlined />}>
-          工具过程可见
+          一键查询
         </Tag>
         <Button
           type="default"

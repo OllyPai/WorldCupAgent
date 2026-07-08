@@ -2,6 +2,11 @@ import { getTeamVisual } from "../data/teamVisuals";
 
 function TeamIdentity({ teamName, align = "left", compact = false }) {
   const visual = getTeamVisual(teamName);
+  const hasFlagImage = typeof visual.flagSrc === "string" &&
+    (visual.flagSrc.startsWith("data:") ||
+      visual.flagSrc.startsWith("/") ||
+      visual.flagSrc.startsWith(".") ||
+      visual.flagSrc.startsWith("http"));
   const style = {
     "--team-accent": visual.accent,
     "--team-accent-soft": visual.accentSoft,
@@ -15,10 +20,10 @@ function TeamIdentity({ teamName, align = "left", compact = false }) {
       style={style}
     >
       <span className="team-crest" aria-hidden="true">
-        {visual.flagSrc.startsWith("data:") || visual.flagSrc.startsWith("/") || visual.flagSrc.startsWith(".") ? (
+        {hasFlagImage ? (
           <img className="team-crest-flag" src={visual.flagSrc} alt="" />
         ) : (
-          <span className="team-crest-emoji">{visual.flagSrc}</span>
+          <span className="team-crest-emoji">{visual.flagSrc || "🏳️"}</span>
         )}
       </span>
       <span className="team-text-stack">

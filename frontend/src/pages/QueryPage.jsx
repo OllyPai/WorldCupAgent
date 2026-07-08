@@ -22,6 +22,24 @@ const EMPTY_AGENT_RESPONSE = {
   result_payload: null,
 };
 
+function formatFailedToolAnswer(toolCall) {
+  const summary = toolCall?.summary || "查询失败，请稍后重试。";
+
+  if (toolCall?.tool === "query_schedule") {
+    return `赛程查询失败：${summary}`;
+  }
+
+  if (toolCall?.tool === "query_player_stats") {
+    return `球员数据查询失败：${summary}`;
+  }
+
+  if (toolCall?.tool === "query_match_detail") {
+    return `比赛详情查询失败：${summary}`;
+  }
+
+  return summary;
+}
+
 function normalizeAgentResponse(payload = {}) {
   const normalized = {
     answer: payload.answer ?? "",
@@ -29,6 +47,18 @@ function normalizeAgentResponse(payload = {}) {
     error: payload.error ?? null,
     result_payload: payload.result_payload ?? null,
   };
+
+  const failedToolCall = normalized.tool_calls.find(
+    (toolCall) => toolCall.status === "failed"
+  );
+
+  if (normalized.error || failedToolCall) {
+    normalized.result_payload = null;
+    normalized.answer = normalized.error
+      ? normalized.answer || normalized.error
+      : formatFailedToolAnswer(failedToolCall);
+    return normalized;
+  }
 
   // 如果后端没有返回 result_payload，尝试从 tool_calls 中实时解析
   if (!normalized.result_payload && normalized.tool_calls.length > 0) {

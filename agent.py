@@ -459,22 +459,30 @@ def _format_match_detail(data: Any) -> str:
     return "\n".join(lines)
 
 
+def _format_tool_error(call: dict[str, Any]) -> str:
+    summary = str(call.get("summary") or "查询暂时失败，请稍后重试。")
+    tool_labels = {
+        "query_schedule": "赛程查询",
+        "query_player_stats": "球员数据查询",
+        "query_players": "球员排行查询",
+        "query_match_detail": "比赛详情查询",
+        "query_top_scorer_by_team": "队内射手查询",
+        "query_best_goalkeeper": "门将扑救查询",
+        "query_top10_scorers": "射手榜查询",
+    }
+    label = tool_labels.get(call["tool"])
+    if label:
+        return f"{label}失败：{summary}"
+
+    return f"{call['tool']} 调用失败：{summary}"
+
+
 def _format_tool_answer(tool_calls: list[dict[str, Any]]) -> str:
     sections = []
 
     for call in tool_calls:
         if call["status"] == "error":
-            tool_labels = {
-                "query_schedule": "赛程查询",
-                "query_player_stats": "球员数据查询",
-                "query_players": "球员排行查询",
-                "query_match_detail": "比赛详情查询",
-                "query_top_scorer_by_team": "队内射手查询",
-                "query_best_goalkeeper": "门将扑救查询",
-                "query_top10_scorers": "射手榜查询",
-            }
-            label = tool_labels.get(call["tool"], call["tool"])
-            sections.append(f"{label}失败：{call['summary']}")
+            sections.append(_format_tool_error(call))
             continue
 
         data = call.get("_data")
