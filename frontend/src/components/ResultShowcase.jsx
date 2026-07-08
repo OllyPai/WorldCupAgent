@@ -1,13 +1,7 @@
-import { Avatar, Card, Empty, Table, Tag } from "antd";
-
-function TeamInline({ team }) {
-  return (
-    <span className="team-inline">
-      <span className="team-flag">{team.flag}</span>
-      <span>{team.name}</span>
-    </span>
-  );
-}
+import { Card, Empty, Tag } from "antd";
+import MatchScheduleList from "./MatchScheduleList";
+import PlayerSpotlightGrid from "./PlayerSpotlightGrid";
+import TeamIdentity from "./TeamIdentity";
 
 function ResultShowcase({ result, fallbackAnswer = "" }) {
   if (!result) {
@@ -16,137 +10,106 @@ function ResultShowcase({ result, fallbackAnswer = "" }) {
         {fallbackAnswer ? (
           <div className="query-answer-fallback">
             <div className="section-headline result-headline">
-              <span className="section-kicker">结果摘要</span>
-              <h3>当前接口暂未返回结构化结果</h3>
-              <p>现阶段以后端返回的文本 answer 为主，后续再逐步补充卡片或表格。</p>
+              <span className="section-kicker">查询结果</span>
+              <h3>系统回答</h3>
+              <p>以下内容来自智能体调用工具后的整理结果。</p>
             </div>
             <div className="query-answer-fallback-box">
               <p>{fallbackAnswer}</p>
             </div>
           </div>
         ) : (
-          <Empty description="暂时没有结果可以展示" />
+          <Empty description="发起查询后，这里将显示查询结果" />
         )}
       </Card>
     );
   }
 
-  const scheduleColumns = [
-    {
-      title: "对阵",
-      dataIndex: "matchup",
-      key: "matchup",
-      render: (_, row) => (
-        <div className="matchup-cell">
-          <TeamInline team={row.homeTeam} />
-          <span className="matchup-divider">对</span>
-          <TeamInline team={row.awayTeam} />
+  // 实时数据渲染逻辑
+  const renderContent = () => {
+    const { mode, data } = result;
+
+    if (mode === "schedule") {
+      // 字段映射：后端(snake_case) -> 组件(camelCase)
+      const mappedMatches = (Array.isArray(data) ? data : []).map((m, idx) => ({
+        id: `real-match-${idx}`,
+        homeTeam: m.home_team,
+        awayTeam: m.away_team,
+        homeScore: m.home_score,
+        awayScore: m.away_score,
+        matchTime: m.match_time,
+        stage: m.stage,
+        status: "已结束", // 演示库数据默认为已结束
+      }));
+      return <MatchScheduleList matches={mappedMatches} />;
+    }
+
+    if (mode === "player") {
+      const mappedPlayers = [
+        {
+          id: `real-player-${data.player_name}`,
+          playerName: data.player_name,
+          teamName: data.team,
+          goals: data.goals,
+          assists: data.assists,
+          appearances: data.appearances,
+        },
+      ];
+      return <PlayerSpotlightGrid players={mappedPlayers} />;
+    }
+
+    if (mode === "match_detail") {
+      return (
+        <div className="match-detail-realtime">
+          <div className="match-detail-header">
+            <div className="match-detail-main-row">
+              <TeamIdentity teamName={data.home_team} />
+              <div className="match-detail-score">
+                <span>{data.home_score}</span>
+                <span className="score-divider">:</span>
+                <span>{data.away_score}</span>
+              </div>
+              <TeamIdentity teamName={data.away_team} align="right" />
+            </div>
+            <div className="match-detail-meta">
+              <Tag color="blue">{data.stage}</Tag>
+              <span>{data.match_date} {data.match_time}</span>
+            </div>
+          </div>
+
+          {data.goals && data.goals.length > 0 && (
+            <div className="match-detail-goals">
+              <h4>进球记录</h4>
+              <div className="goal-list">
+                {data.goals.map((g, idx) => (
+                  <div key={idx} className={`goal-item ${g.team === data.home_team ? "is-home" : "is-away"}`}>
+                    <span className="goal-time">{g.goal_time}'</span>
+                    <span className="goal-player">{g.player_name}</span>
+                    <Tag size="small">{g.event_type === "进球" ? "⚽" : "OG"}</Tag>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-      ),
-    },
-    {
-      title: "比分",
-      dataIndex: "score",
-      key: "score",
-    },
-    {
-      title: "状态",
-      dataIndex: "status",
-      key: "status",
-      render: (value) => (
-        <Tag color={value === "进行中" ? "red" : value === "未开始" ? "blue" : "green"}>
-          {value}
-        </Tag>
-      ),
-    },
-    {
-      title: "时间",
-      dataIndex: "time",
-      key: "time",
-    },
-  ];
+      );
+    }
+
+    return (
+      <div className="query-answer-fallback-box">
+        <p>{result.content ?? fallbackAnswer}</p>
+      </div>
+    );
+  };
 
   return (
     <Card className="query-result-card" bordered={false}>
       <div className="section-headline result-headline">
-        <span className="section-kicker">结构化结果</span>
-        <h3>{result.title}</h3>
-        <p>{result.summary}</p>
+        <span className="section-kicker">查询结果</span>
+        <h3>{result.title ?? "查询结果"}</h3>
+        <p>{result.summary ?? "以下结果由后端智能体调用工具后生成。"}</p>
       </div>
-
-      {result.mode === "schedule" ? (
-        <Table
-          columns={scheduleColumns}
-          dataSource={result.rows}
-          pagination={false}
-          className="result-table"
-        />
-      ) : null}
-
-      {result.mode === "scorecard" ? (
-        <div className="score-result-wrap">
-          <div className="score-result-main">
-            <TeamInline team={result.match.homeTeam} />
-            <div className="score-result-center">
-              <strong>
-                {result.match.homeScore} : {result.match.awayScore}
-              </strong>
-              <span>{result.match.stage}</span>
-            </div>
-            <TeamInline team={result.match.awayTeam} />
-          </div>
-
-          <div className="score-stat-grid">
-            {result.stats.map((stat) => (
-              <div className="score-stat-item" key={stat.label}>
-                <span>{stat.label}</span>
-                <strong>{stat.value}</strong>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      {result.mode === "events" ? (
-        <div className="event-list">
-          {result.events.map((event) => (
-            <div className="event-card" key={event.id}>
-              <Avatar className="event-avatar">{event.avatar}</Avatar>
-              <div>
-                <strong>{event.playerName}</strong>
-                <div className="event-meta">
-                  <span>{event.team.flag}</span>
-                  <span>{event.team.name}</span>
-                  <span>{event.minute}</span>
-                  <Tag color="green">{event.goalType}</Tag>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : null}
-
-      {result.mode === "recommendation" ? (
-        <div className="recommend-grid">
-          {result.cards.map((card) => (
-            <div className="recommend-card" key={card.id}>
-              <div className="recommend-rank">推荐 {card.rank}</div>
-              <div className="recommend-matchup">
-                <TeamInline team={card.homeTeam} />
-                <strong>
-                  {card.homeScore} : {card.awayScore}
-                </strong>
-                <TeamInline team={card.awayTeam} />
-              </div>
-              <div className="recommend-meta">
-                <Tag color="cyan">{card.heat}</Tag>
-                <Tag color="green">{card.status}</Tag>
-              </div>
-              <p>{card.summary}</p>
-            </div>
-          ))}
-        </div>
-      ) : null}
+      {renderContent()}
     </Card>
   );
 }

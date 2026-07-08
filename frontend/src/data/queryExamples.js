@@ -248,39 +248,7 @@ const queryCases = [
       },
     },
   },
-  {
-    id: "query-04",
-    label: "今日示例",
-    placeholder: "例如：请查询葡萄牙和西班牙的比赛详情",
-    request: {
-      user_input: quickQueries[3].queryText,
-      history: [],
-    },
-    response: {
-      answer:
-        "比赛详情查询结果（本地课程演示数据库）：葡萄牙 0:1 西班牙。",
-      tool_calls: [
-        buildToolCall(
-          "query_match_detail",
-          { home_team: "葡萄牙", away_team: "西班牙" },
-          "success",
-          "返回 match_id=93 的比赛详情。"
-        ),
-      ],
-      error: null,
-      result_payload: {
-        mode: "recommendation",
-        title: "本地演示库比赛卡片",
-        summary: "这些卡片用于说明首页展示，不代表官方实时赛况。",
-        cards: featuredMatches.map((match, index) => ({
-          ...match,
-          rank: index + 1,
-          homeTeam: formatTeam(match.homeTeam),
-          awayTeam: formatTeam(match.awayTeam),
-        })),
-      },
-    },
-  },
+
 ];
 
 export const querySuggestions = quickQueries;
@@ -296,7 +264,7 @@ export function getQueryCases() {
   return queryCases;
 }
 
-export function resolveMockCaseByQuestion(question) {
+export function resolveExampleCaseByQuestion(question) {
   const normalized = question.toLowerCase();
 
   if (

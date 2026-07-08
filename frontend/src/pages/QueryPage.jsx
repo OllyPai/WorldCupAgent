@@ -11,8 +11,8 @@ import {
   getQueryCase,
   getQueryCases,
   querySuggestions,
-  resolveMockCaseByQuestion,
-} from "../data/queryMock";
+  resolveExampleCaseByQuestion,
+} from "../data/queryExamples";
 
 const queryCases = getQueryCases();
 const EMPTY_AGENT_RESPONSE = {
@@ -23,12 +23,46 @@ const EMPTY_AGENT_RESPONSE = {
 };
 
 function normalizeAgentResponse(payload = {}) {
-  return {
+  const normalized = {
     answer: payload.answer ?? "",
     tool_calls: Array.isArray(payload.tool_calls) ? payload.tool_calls : [],
     error: payload.error ?? null,
     result_payload: payload.result_payload ?? null,
   };
+
+  // 如果后端没有返回 result_payload，尝试从 tool_calls 中实时解析
+  if (!normalized.result_payload && normalized.tool_calls.length > 0) {
+    const lastToolCall = normalized.tool_calls[normalized.tool_calls.length - 1];
+    if (lastToolCall.status === "success") {
+      try {
+        const data = JSON.parse(lastToolCall.summary);
+        if (lastToolCall.tool === "query_schedule") {
+          normalized.result_payload = {
+            mode: "schedule",
+            title: "查询结果：赛程信息",
+            data: data,
+          };
+        } else if (lastToolCall.tool === "query_player_stats") {
+          normalized.result_payload = {
+            mode: "player",
+            title: `查询结果：${data.player_name} 数据统计`,
+            data: data,
+          };
+        } else if (lastToolCall.tool === "query_match_detail") {
+          normalized.result_payload = {
+            mode: "match_detail",
+            title: "查询结果：比赛详情",
+            data: data,
+          };
+        }
+      } catch (e) {
+        // 如果 summary 不是 JSON，则保持原样
+        console.log("Tool summary is not JSON, skipping real-time parsing");
+      }
+    }
+  }
+
+  return normalized;
 }
 
 function buildAssistantMessage(agentResponse) {
@@ -96,7 +130,7 @@ function QueryPage() {
       role: item.role,
       content: item.content,
     }));
-    const matchedCase = resolveMockCaseByQuestion(question);
+    const matchedCase = resolveExampleCaseByQuestion(question);
 
     setRequestError(null);
     setLoading(true);

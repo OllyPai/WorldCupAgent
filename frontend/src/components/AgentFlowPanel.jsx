@@ -18,7 +18,7 @@ function AgentFlowPanel({ trace }) {
     <div className="agent-panel-grid">
       <Card className="agent-step-card" bordered={false}>
         <div className="section-headline">
-          <span className="section-kicker">智能体轨迹</span>
+          <span className="section-kicker">Agent Trace</span>
           <h3>不是普通问答，而是“理解 → 调用 → 观察 → 回答”</h3>
         </div>
 
@@ -28,7 +28,7 @@ function AgentFlowPanel({ trace }) {
               <div className="trace-step-box">
                 <div className="trace-icon">{stepIcons[index]}</div>
                 <div>
-                  <strong>步骤 {index + 1}</strong>
+                  <strong>Step {index + 1}</strong>
                   <p>{step}</p>
                 </div>
               </div>

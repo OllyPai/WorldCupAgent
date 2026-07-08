@@ -199,6 +199,102 @@
 .composer-actions {
   display: flex;
   justify-content: flex-end;
+  margin-top: 12px;
+}
+
+/* 实时比赛详情样式 */
+.match-detail-realtime {
+  margin-top: 24px;
+}
+
+.match-detail-header {
+  padding: 24px;
+  background: var(--panel-strong-bg);
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  margin-bottom: 24px;
+}
+
+.match-detail-main-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.match-detail-score {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 42px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.score-divider {
+  color: var(--text-soft);
+  opacity: 0.5;
+}
+
+.match-detail-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
+  color: var(--text-soft);
+  font-size: 14px;
+}
+
+.match-detail-goals h4 {
+  margin-bottom: 16px;
+  color: var(--text-main);
+  font-size: 16px;
+}
+
+.goal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.goal-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--panel-strong-bg);
+  border-radius: 12px;
+  border-left: 4px solid transparent;
+}
+
+.goal-item.is-home {
+  border-left-color: var(--blue-main);
+}
+
+.goal-item.is-away {
+  flex-direction: row-reverse;
+  border-left-color: transparent;
+  border-right: 4px solid var(--green-main);
+}
+
+.goal-time {
+  font-weight: 700;
+  color: var(--blue-soft);
+}
+
+.goal-player {
+  flex: 1;
+  color: var(--text-body);
+}
+
+.goal-item.is-away .goal-player {
+  text-align: right;
+}
+
+.composer-actions {
+  display: flex;
+  justify-content: flex-end;
   width: 100%;
   margin-top: 14px;
 }
