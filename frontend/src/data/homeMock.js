@@ -112,6 +112,33 @@ export const goalEvents = [
   },
 ];
 
+export const playerSpotlights = [
+  {
+    id: "player-01",
+    playerName: "梅西",
+    teamName: "阿根廷",
+    goals: 7,
+    assists: 3,
+    appearances: 5,
+  },
+  {
+    id: "player-02",
+    playerName: "哈兰德",
+    teamName: "挪威",
+    goals: 2,
+    assists: 0,
+    appearances: 1,
+  },
+  {
+    id: "player-03",
+    playerName: "内马尔",
+    teamName: "巴西",
+    goals: 1,
+    assists: 0,
+    appearances: 1,
+  },
+];
+
 export const quickQueries = [
   {
     id: "query-01",
@@ -127,11 +154,6 @@ export const quickQueries = [
     id: "query-03",
     label: "比赛详情",
     queryText: "请查询阿根廷和佛得角的比赛详情",
-  },
-  {
-    id: "query-04",
-    label: "今日示例",
-    queryText: "请查询葡萄牙和西班牙的比赛详情",
   },
 ];
 

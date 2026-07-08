@@ -198,16 +198,33 @@ body,
 .theme-toggle-btn:hover,
 .theme-toggle-btn:focus {
   background: var(--btn-surface-hover-bg) !important;
-  color: var(--blue-soft) !important;
-  border-color: var(--line-strong) !important;
-  transform: translateY(-1px);
+  border-color: var(--blue-main) !important;
+  color: var(--blue-main) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .theme-toggle-glyph {
-  display: inline-flex;
-  transition: transform 0.35s ease;
+  line-height: 1;
 }
 
-:root[data-theme="light"] .theme-toggle-glyph {
-  transform: rotate(18deg) scale(1.06);
+.team-crest-flag {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.team-crest-emoji {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.team-identity.is-compact .team-crest-emoji {
+  font-size: 18px;
 }

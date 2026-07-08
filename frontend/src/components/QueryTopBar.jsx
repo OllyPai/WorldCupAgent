@@ -11,16 +11,16 @@ function QueryTopBar({ activeLabel }) {
       <div>
         <div className="query-topbar-title">智能查询工作台</div>
         <div className="query-topbar-subtitle">
-          对话界面 + 工具调用过程 + 结构化结果展示
+          赛程查询 + 球员数据查询 + 比赛详情查询
         </div>
       </div>
 
       <Space wrap>
-        <Tag color="cyan">当前案例 · {activeLabel}</Tag>
-        <Tag color="green" icon={<ApiOutlined />}>
-          过程可见
-        </Tag>
         <ThemeToggleButton />
+        <Tag color="cyan">当前示例 · {activeLabel}</Tag>
+        <Tag color="green" icon={<ApiOutlined />}>
+          工具过程可见
+        </Tag>
         <Button
           type="default"
           icon={<ArrowLeftOutlined />}
