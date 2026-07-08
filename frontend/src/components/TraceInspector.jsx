@@ -5,7 +5,7 @@ function TraceInspector({ toolCalls = [], error = null }) {
   const hasInvalidQuery = toolCalls.some((toolCall) => toolCall.is_invalid_query === true);
   const hasFailedTool = toolCalls.some((toolCall) => toolCall.status === "failed" && !toolCall.is_invalid_query);
   const overallFailed = Boolean(error || hasFailedTool);
-  
+
   const stepItems = toolCalls.map((toolCall, index) => ({
     title: `工具调用 ${index + 1}`,
     description: `${toolCall.tool} · ${toolCall.summary}`,

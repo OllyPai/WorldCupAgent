@@ -137,6 +137,7 @@
 | 模型最终回答加入工具未返回的事实 | 2 | 仅靠 Prompt 仍会推断，已改为工具型问题由代码格式化最终回答 |
 | 沙盒禁止 `git merge` 写入 `.git/ORIG_HEAD.lock` | 1 | 使用授权后的同一条 `git merge --no-commit --no-ff origin/feat/tools-data` 成功 |
 | 当前虚拟环境缺少 `streamlit` 命令 | 1 | 判定前端方向应改为 React + FastAPI，不继续使用 Streamlit |
+| 直接执行 `session-catchup.py` 被系统拒绝权限 | 1 | 改用 `python3 .../session-catchup.py` 执行，恢复报告读取成功 |
 
 ## 计划维护规则
 
