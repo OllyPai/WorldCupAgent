@@ -28,8 +28,7 @@ function ChatWorkspace({
     <Card className="query-chat-card" bordered={false}>
       <div className="section-headline">
         <span className="section-kicker">对话界面</span>
-        <h2>让用户像聊天一样问，但返回的是可验证的赛事结果</h2>
-        <p>这里是你的核心职责页面，后续接后端后会直接承接真实问答流程。</p>
+        <h2>问你想问，获取赛程、球员数据或比赛详情</h2>
       </div>
 
       <div className="query-suggestion-row">

@@ -1,0 +1,72 @@
+<svg width="1600" height="1000" viewBox="0 0 1600 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="1000" fill="#07111D"/>
+  <ellipse cx="800" cy="468" rx="770" ry="368" fill="url(#crowdGlow)" opacity="0.86"/>
+  <path d="M84 424C84 226 406 98 800 98C1194 98 1516 226 1516 424V564C1516 364 1194 242 800 242C406 242 84 364 84 564V424Z" fill="#0E1C2B"/>
+  <path d="M126 470C126 298 425 196 800 196C1175 196 1474 298 1474 470" stroke="#1B3149" stroke-width="28"/>
+  <path d="M0 738C165 626 398 556 800 556C1202 556 1435 626 1600 738V1000H0V738Z" fill="url(#pitch)"/>
+  <path d="M286 714C424 640 595 610 800 610C1005 610 1176 640 1314 714" stroke="#B8F4D4" stroke-opacity="0.52" stroke-width="6" stroke-linecap="round"/>
+  <path d="M232 794C396 706 585 670 800 670C1015 670 1204 706 1368 794" stroke="#DDFDEA" stroke-opacity="0.46" stroke-width="5" stroke-linecap="round"/>
+  <path d="M800 610V934" stroke="#DDFDEA" stroke-opacity="0.3" stroke-width="4"/>
+  <path d="M716 782C716 736 753 698 800 698C847 698 884 736 884 782" stroke="#DDFDEA" stroke-opacity="0.34" stroke-width="4"/>
+  <g opacity="0.92">
+    <path d="M648 564L734 500H866L952 564" stroke="#EAFBF2" stroke-opacity="0.82" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M674 564V684H926V564" stroke="#EAFBF2" stroke-opacity="0.78" stroke-width="8" stroke-linecap="round"/>
+    <path d="M700 564V684" stroke="#D7FCEC" stroke-opacity="0.3" stroke-width="3"/>
+    <path d="M750 532V684" stroke="#D7FCEC" stroke-opacity="0.3" stroke-width="3"/>
+    <path d="M800 500V684" stroke="#D7FCEC" stroke-opacity="0.3" stroke-width="3"/>
+    <path d="M850 532V684" stroke="#D7FCEC" stroke-opacity="0.3" stroke-width="3"/>
+    <path d="M900 564V684" stroke="#D7FCEC" stroke-opacity="0.3" stroke-width="3"/>
+    <path d="M674 614H926" stroke="#D7FCEC" stroke-opacity="0.24" stroke-width="3"/>
+    <path d="M674 650H926" stroke="#D7FCEC" stroke-opacity="0.24" stroke-width="3"/>
+  </g>
+  <g filter="url(#ballShadow)">
+    <circle cx="800" cy="866" r="92" fill="#F8FAFC"/>
+    <path d="M800 798L829 820L818 855H782L771 820L800 798Z" fill="#0F172A"/>
+    <path d="M752 836L771 820L782 855L760 878L734 864L752 836Z" fill="#111827"/>
+    <path d="M848 836L829 820L818 855L840 878L866 864L848 836Z" fill="#111827"/>
+    <path d="M760 878L782 855H818L840 878L824 912H776L760 878Z" fill="#111827"/>
+    <path d="M776 912H824L815 944H785L776 912Z" fill="#111827"/>
+  </g>
+  <ellipse cx="800" cy="874" rx="136" ry="32" fill="url(#ballGlow)" opacity="0.7"/>
+  <path d="M236 166C392 88 582 52 800 52C1018 52 1208 88 1364 166" stroke="url(#lightBand)" stroke-width="14" stroke-linecap="round"/>
+  <g opacity="0.9">
+    <circle cx="284" cy="210" r="15" fill="#B8EEFF"/>
+    <circle cx="448" cy="148" r="15" fill="#B8EEFF"/>
+    <circle cx="620" cy="116" r="15" fill="#B8EEFF"/>
+    <circle cx="800" cy="98" r="18" fill="#F8F3C2"/>
+    <circle cx="980" cy="116" r="15" fill="#B8EEFF"/>
+    <circle cx="1152" cy="148" r="15" fill="#B8EEFF"/>
+    <circle cx="1316" cy="210" r="15" fill="#B8EEFF"/>
+  </g>
+  <defs>
+    <radialGradient id="crowdGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(800 432) rotate(90) scale(410 848)">
+      <stop stop-color="#17344E"/>
+      <stop offset="0.56" stop-color="#0A1725"/>
+      <stop offset="1" stop-color="#07111D" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="pitch" x1="800" y1="556" x2="800" y2="1000" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1F8F4C"/>
+      <stop offset="0.6" stop-color="#13673A"/>
+      <stop offset="1" stop-color="#0D4C2B"/>
+    </linearGradient>
+    <linearGradient id="lightBand" x1="236" y1="166" x2="1364" y2="166" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#62DFFF" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#62DFFF"/>
+      <stop offset="1" stop-color="#62DFFF" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="ballGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(800 874) rotate(90) scale(32 136)">
+      <stop stop-color="#DFFDEA"/>
+      <stop offset="1" stop-color="#DFFDEA" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="ballShadow" x="684" y="780" width="232" height="194" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feOffset dy="8"/>
+      <feGaussianBlur stdDeviation="10"/>
+      <feComposite in2="hardAlpha" operator="out"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.0117647 0 0 0 0 0.0627451 0 0 0 0 0.105882 0 0 0 0.35 0"/>
+      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1_2"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1_2" result="shape"/>
+    </filter>
+  </defs>
+</svg>

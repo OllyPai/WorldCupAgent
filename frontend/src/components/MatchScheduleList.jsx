@@ -1,5 +1,6 @@
 import { Card, Tag } from "antd";
 import { ClockCircleOutlined } from "@ant-design/icons";
+import TeamIdentity from "./TeamIdentity";
 
 function MatchScheduleList({ matches }) {
   return (
@@ -14,12 +15,13 @@ function MatchScheduleList({ matches }) {
           </div>
 
           <div className="schedule-teams">
+            <div className="schedule-versus-badge">VS</div>
             <div className="team-row">
-              <span>{match.homeTeam}</span>
+              <TeamIdentity teamName={match.homeTeam} compact />
               <strong>{match.homeScore}</strong>
             </div>
             <div className="team-row">
-              <span>{match.awayTeam}</span>
+              <TeamIdentity teamName={match.awayTeam} compact />
               <strong>{match.awayScore}</strong>
             </div>
           </div>
@@ -28,10 +30,7 @@ function MatchScheduleList({ matches }) {
             <span>
               <ClockCircleOutlined /> {match.matchTime}
             </span>
-            <span>{match.stadium}</span>
           </div>
-
-          <p className="schedule-highlight">{match.highlight}</p>
         </Card>
       ))}
     </div>
