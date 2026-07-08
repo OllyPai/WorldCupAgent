@@ -142,12 +142,12 @@ export const playerSpotlights = [
 export const quickQueries = [
   {
     id: "query-01",
-    label: "巴西赛程",
+    label: "赛程",
     queryText: "请查询巴西队赛程",
   },
   {
     id: "query-02",
-    label: "梅西数据",
+    label: "球员数据",
     queryText: "请查询梅西的世界杯进球数据",
   },
   {

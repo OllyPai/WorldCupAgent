@@ -146,7 +146,7 @@ function buildMessageFeed(userInput, answer, note) {
 const queryCases = [
   {
     id: "query-01",
-    label: "巴西赛程",
+    label: "赛程",
     placeholder: "例如：请查询巴西队赛程",
     request: {
       user_input: quickQueries[0].queryText,
@@ -174,7 +174,7 @@ const queryCases = [
   },
   {
     id: "query-02",
-    label: "梅西数据",
+    label: "球员数据",
     placeholder: "例如：请查询梅西的世界杯进球数据",
     request: {
       user_input: quickQueries[1].queryText,
