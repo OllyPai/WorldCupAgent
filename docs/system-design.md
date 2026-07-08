@@ -5,7 +5,7 @@
 | 系统名称 | WorldCupAgent 世界杯工具调用智能体 |
 | 选题 | 基于大模型的工具调用智能体 |
 | 文档类型 | 系统设计说明书 |
-| 文档版本 | v1.0 |
+| 文档版本 | v1.1 |
 | 编写日期 | 2026-07-08 |
 | 设计依据 | 需求规格说明书、评分细则、当前代码实现 |
 
@@ -30,18 +30,24 @@
 
 当前版本已经实现：
 
-- React 前端查询界面；
+- React 前端首页和智能查询界面；
+- 前端主题切换、球队视觉信息和国旗资源展示；
 - FastAPI 后端 HTTP 接口；
 - LangChain + DeepSeek Agent；
 - 赛程查询工具 `query_schedule`；
 - 单球员数据工具 `query_player_stats`；
 - 球员列表/排行工具 `query_players`；
 - 比赛详情工具 `query_match_detail`；
+- 队内最佳射手工具 `query_top_scorer_by_team`；
+- 射手榜前十工具 `query_top10_scorers`；
+- 门将扑救榜工具 `query_best_goalkeeper`；
 - SQLite 数据库 `tools/worldcup.db`；
 - 多轮对话历史传入；
+- 前端对 `answer`、`tool_calls`、`error` 和 `result_payload` 的统一消费；
+- 前端在后端未返回 `result_payload` 时，基于工具摘要解析赛程、球员和比赛详情结构化结果；
 - 工具调用过程展示；
 - 空输入、低信息输入、超范围输入、工具失败等异常处理；
-- 后端自动化测试和工具层自测。
+- 后端自动化测试、工具层自测和前端构建验证。
 
 当前版本不包含：
 
@@ -49,44 +55,50 @@
 - 官方实时 API 接入；
 - 长期保存用户历史；
 - 支付、分享、推送等非核心业务；
-- 完整积分榜和复杂球员位置评价模型。
+- 完整积分榜、球队排名和复杂综合评分模型。
 
 ## 2. 系统体系架构
 
 ### 2.1 总体架构
 
-系统采用前后端分离架构。React 前端负责用户交互和工具调用过程展示；FastAPI 后端负责 HTTP 接口适配；Agent 核心负责输入判断、工具调用和回答生成；工具层负责受控数据库查询；SQLite 负责持久化赛事数据。
+系统采用前后端分离架构。React 前端负责首页展示、智能查询、结构化结果展示和工具调用过程展示；FastAPI 后端负责 HTTP 接口适配；Agent 核心负责输入判断、工具调用和回答生成；工具层负责受控数据库查询；SQLite 负责持久化赛事数据。
 
 ```mermaid
-flowchart LR
-    U[用户] --> FE[React 前端]
-    FE -->|POST /api/chat| API[FastAPI 后端]
-    API --> AG[Agent 核心 chat_with_agent]
-    AG --> LLM[DeepSeek 模型]
-    AG --> TR[工具注册表]
-    TR --> TS[query_schedule]
-    TR --> TPS[query_player_stats]
-    TR --> TP[query_players]
-    TR --> TMD[query_match_detail]
-    TS --> DB[(SQLite worldcup.db)]
-    TPS --> DB
-    TP --> DB
-    TMD --> DB
-    AG -->|answer/tool_calls/error| API
+flowchart TB
+    U[用户]
+    FE[React 前端<br/>首页/查询页/结果展示/Trace]
+    API[FastAPI 后端<br/>/api/chat 契约适配]
+    AG[Agent 核心<br/>输入判断/工具调用/回答生成]
+    LLM[DeepSeek 模型<br/>自然语言理解与工具选择]
+    TR[工具注册表 WORLD_CUP_TOOLS]
+    AtomicTools[原子查询工具<br/>赛程/球员/比赛详情]
+    BusinessTools[业务统计工具<br/>队内射手/射手榜/门将扑救]
+    DB[(SQLite worldcup.db)]
+
+    U --> FE
+    FE -->|POST /api/chat| API
+    API --> AG
+    AG --> LLM
+    AG --> TR
+    TR --> AtomicTools
+    TR --> BusinessTools
+    AtomicTools --> DB
+    BusinessTools --> DB
+    AG -->|answer/tool_calls/error/result_payload| API
     API -->|JSON 响应| FE
-    FE -->|回答 + Trace| U
+    FE -->|回答 + 结构化结果 + Trace| U
 ```
 
 ### 2.2 分层说明
 
 | 层次 | 主要模块 | 职责 |
 |---|---|---|
-| 表现层 | `frontend/src` | 输入问题、展示回答、展示工具调用 Trace、维护前端历史 |
+| 表现层 | `frontend/src` | 输入问题、展示回答和结构化结果、展示工具调用 Trace、维护前端历史、提供主题和球队视觉展示 |
 | API 层 | `backend/app.py` | 提供 `/api/health` 和 `/api/chat`，转换前后端数据契约 |
 | Agent 层 | `agent.py` | 构建 Agent、校验输入、识别特殊问题、调用工具、生成最终回答 |
 | 工具层 | `tools/query_*.py` | 封装数据库查询能力，统一返回 `success/data/error` |
 | 数据访问层 | `tools/db_helper.py` | 创建 SQLite 连接，统一数据库路径和 row factory |
-| 数据层 | `tools/worldcup.db` | 存储比赛、进球事件和球员统计数据 |
+| 数据层 | `tools/worldcup.db` | 存储比赛、进球事件、场上球员统计和门将统计数据 |
 
 ### 2.3 部署视图
 
@@ -116,41 +128,44 @@ flowchart TB
 ### 3.1 功能层次结构
 
 ```mermaid
-mindmap
-  root((WorldCupAgent))
-    前端交互
-      示例问题入口
-      自然语言输入
-      对话消息展示
-      查询结果展示
-      工具调用 Trace
-      错误状态提示
-    后端接口
-      健康检查
-      聊天查询
-      历史消息接收
-      前端契约转换
-    Agent 核心
-      输入兜底
-      对阵详情直达
-      工具选择
-      工具结果解析
-      混合回答生成
-      高风险推断回退
-    工具集
-      赛程查询
-      单球员数据查询
-      球员排行查询
-      比赛详情查询
-    数据库
-      matches
-      match_details
-      players
-    测试验证
-      工具自测
-      API 契约测试
-      Agent 离线测试
-      真实模型冒烟测试
+flowchart TB
+    Root[WorldCupAgent]
+
+    Root --> FE[前端交互]
+    FE --> FE1[首页赛事展示]
+    FE --> FE2[自然语言输入]
+    FE --> FE3[回答与结构化结果]
+    FE --> FE4[工具 Trace]
+    FE --> FE5[主题/球队视觉]
+
+    Root --> API[后端接口]
+    API --> API1[健康检查]
+    API --> API2[聊天查询]
+    API --> API3[历史消息接收]
+    API --> API4[前端契约转换]
+
+    Root --> Agent[Agent 核心]
+    Agent --> AG1[输入兜底]
+    Agent --> AG2[工具选择]
+    Agent --> AG3[结果解析]
+    Agent --> AG4[混合回答生成]
+    Agent --> AG5[高风险推断回退]
+
+    Root --> Tools[工具集]
+    Tools --> T1[赛程/球员/比赛详情]
+    Tools --> T2[排行/队内射手/射手榜]
+    Tools --> T3[门将扑救]
+
+    Root --> DB[数据库]
+    DB --> D1[matches]
+    DB --> D2[match_details]
+    DB --> D3[players]
+    DB --> D4[goalkeepers]
+
+    Root --> Test[测试验证]
+    Test --> V1[工具自测]
+    Test --> V2[API/Agent 测试]
+    Test --> V3[前端构建]
 ```
 
 ### 3.2 核心功能与模块对应
@@ -161,8 +176,13 @@ mindmap
 | 单球员数据查询 | `QueryPage`、`ResultShowcase` | `chat_with_agent` | `query_player_stats`、`players` |
 | 球员排行查询 | `QueryPage`、`TraceInspector` | `chat_with_agent` | `query_players`、`players` |
 | 比赛详情查询 | `QueryPage`、`ResultShowcase` | `_direct_matchup_detail_response`、`chat_with_agent` | `query_match_detail`、`matches`、`match_details` |
+| 队内最佳射手查询 | `QueryPage`、`ResultShowcase` | `chat_with_agent` | `query_top_scorer_by_team`、`players` |
+| 射手榜前十查询 | `QueryPage`、`ResultShowcase` | `chat_with_agent` | `query_top10_scorers`、`players` |
+| 门将扑救榜查询 | `QueryPage`、`ResultShowcase` | `chat_with_agent` | `query_best_goalkeeper`、`goalkeepers` |
 | 多轮比较 | `messages` 历史维护 | LangChain Agent、`_is_comparison_query` | `query_player_stats` 或 `query_players` |
 | 工具调用过程展示 | `TraceInspector` | `_to_frontend_response` | `tool_calls` |
+| 结构化结果展示 | `ResultShowcase` | `_to_frontend_response`，前端 `normalizeAgentResponse` | `result_payload` 或 `tool_calls[].summary` |
+| 球队视觉展示 | `TeamIdentity`、`teamVisuals`、`flags/*.svg` | 无后端依赖 | 前端静态资源 |
 | 异常提示 | `Alert`、消息气泡 | `_special_input_response`、工具错误解析 | 工具统一错误结构 |
 
 ## 4. 系统用例时序图及说明
@@ -251,8 +271,8 @@ sequenceDiagram
     AG->>LLM: 发送问题和工具说明
     LLM-->>AG: 调用 query_player_stats(C罗)
     AG->>Tool: 查询 C罗
-    Tool->>DB: 查询 players 表
-    DB-->>Tool: 返回 C罗数据
+    Tool->>DB: 查询 players/goalkeepers/match_details
+    DB-->>Tool: 返回 C罗进球聚合数据
     AG-->>FE: 返回 C罗工具结果
     FE->>FE: 保存 user/assistant 到 messages
 
@@ -273,8 +293,9 @@ sequenceDiagram
 说明：
 
 1. 前端维护短期对话历史，后端不保存用户长期历史。
-2. 比较类问题允许 LLM 综合当前工具结果和历史中已经由系统返回过的工具事实。
-3. 综合回答仍受工具事实约束，不允许使用外部新闻、历史纪录或预测。
+2. `query_player_stats` 先查场上球员统计，再查门将统计；如果统计表未收录但比赛事件有进球记录，则用 `match_details` 聚合进球数兜底。
+3. 比较类问题允许 LLM 综合当前工具结果和历史中已经由系统返回过的工具事实。
+4. 综合回答仍受工具事实约束，不允许使用外部新闻、历史纪录或预测。
 
 ## 5. 复杂功能算法设计
 
@@ -335,6 +356,9 @@ Output:
 4. if user_input is ambiguous player evaluation:
        return metric clarification response
 
+   Note: "最佳门将/扑救最多" is not treated as ambiguous,
+         because the database has goalkeeper save fields and a dedicated tool.
+
 5. if user_input matches "X和Y比赛详情/对阵/交手":
        call query_match_detail(home_team=X, away_team=Y)
        parse tool result
@@ -370,9 +394,12 @@ Output:
 | 赛程查询 | 代码稳定格式化 | 避免 LLM 推断晋级、出线、淘汰等工具外事实 |
 | 比赛详情查询 | 代码稳定格式化 | 避免比分、进球记录被改写 |
 | 单球员数据查询 | 代码稳定格式化 | 避免扩写别名、全名或历史背景 |
-| 球员排行查询 | 允许 LLM 综合 | 需要把列表结果组织成自然语言 |
+| 队内最佳射手查询 | 代码稳定格式化 | 避免把“射手”误解释为门将或综合最佳球员 |
+| 射手榜前十查询 | 代码稳定格式化 | 避免排行顺序、进球数被改写 |
+| 门将扑救榜查询 | 代码稳定格式化 | 以 `goalkeepers` 表中的扑救次数为唯一依据 |
+| 球员排行查询 | 代码稳定格式化或有限综合 | 简单排行直接格式化；比较追问允许结合历史工具事实 |
 | 多轮比较查询 | 允许 LLM 综合 | 需要结合当前工具结果和历史工具事实 |
-| 模糊评价问题 | 不调用模型，提示明确指标 | 当前数据库没有位置、扑救、评分等评价字段 |
+| 模糊评价问题 | 不调用模型，提示明确指标 | “最好/最强”等问题缺少唯一评价标准 |
 
 高风险推断词包括“晋级、出线、淘汰、止步、战绩、小组第一”等。如果工具型回答中出现这类词，系统回退到稳定格式化结果。
 
@@ -420,20 +447,25 @@ classDiagram
         +WORLD_CUP_TOOLS
     }
 
-    class ScheduleTool {
+    class WorldCupTools {
         +query_schedule(team, date, stage)
-    }
-
-    class PlayerStatsTool {
         +query_player_stats(player_name)
-    }
-
-    class PlayersQueryTool {
         +query_players(player_name, team, sort_by, limit)
+        +query_match_detail(home_team, away_team, match_id)
+        +query_top_scorer_by_team(team)
+        +query_top10_scorers()
+        +query_best_goalkeeper()
     }
 
-    class MatchDetailTool {
-        +query_match_detail(home_team, away_team, match_id)
+    class FrontendQueryPage {
+        +normalizeAgentResponse(payload)
+        +handleSubmit()
+        +messages
+        +agentResponse
+    }
+
+    class PlayerAliasHelper {
+        +player_name_candidates(player_name)
     }
 
     class DatabaseHelper {
@@ -444,19 +476,17 @@ classDiagram
         +matches
         +match_details
         +players
+        +goalkeepers
     }
 
     ChatRequest "1" --> "*" ChatMessage
     ChatResponse "1" --> "*" ToolCall
+    FrontendQueryPage --> ChatRequest
+    FrontendQueryPage --> ChatResponse
     AgentCore --> ToolRegistry
-    ToolRegistry --> ScheduleTool
-    ToolRegistry --> PlayerStatsTool
-    ToolRegistry --> PlayersQueryTool
-    ToolRegistry --> MatchDetailTool
-    ScheduleTool --> DatabaseHelper
-    PlayerStatsTool --> DatabaseHelper
-    PlayersQueryTool --> DatabaseHelper
-    MatchDetailTool --> DatabaseHelper
+    ToolRegistry --> WorldCupTools
+    WorldCupTools --> DatabaseHelper
+    WorldCupTools --> PlayerAliasHelper
     DatabaseHelper --> SQLiteDatabase
 ```
 
@@ -470,11 +500,10 @@ classDiagram
 | `ChatResponse` | `backend/app.py` | `/api/chat` 响应体模型 |
 | `AgentCore` | `agent.py` | Agent 核心逻辑抽象 |
 | `ToolRegistry` | `agent.py` | 已注册工具列表 |
-| `ScheduleTool` | `tools/query_schedule.py` | 赛程查询工具 |
-| `PlayerStatsTool` | `tools/query_player_stats.py` | 单球员统计工具 |
-| `PlayersQueryTool` | `tools/query_players.py` | 球员列表和排行工具 |
-| `MatchDetailTool` | `tools/query_match_detail.py` | 比赛详情工具 |
+| `WorldCupTools` | `tools/query_*.py` | 7 个世界杯查询工具集合 |
+| `PlayerAliasHelper` | `tools/player_aliases.py` | 处理“梅西/C罗/姆巴佩”等简称和数据库全名之间的匹配 |
 | `DatabaseHelper` | `tools/db_helper.py` | SQLite 连接辅助模块 |
+| `FrontendQueryPage` | `frontend/src/pages/QueryPage.jsx` | 查询页状态、提交、响应归一化和结构化结果解析 |
 
 ## 7. 接口设计
 
@@ -546,7 +575,17 @@ classDiagram
 | `tool_calls[].status` | string | 前端状态，取值为 `success` 或 `failed` |
 | `tool_calls[].summary` | string | 工具结果摘要，成功时通常是 JSON 字符串 |
 | `error` | string/null | 系统级错误；工具失败不一定导致该字段非空 |
-| `result_payload` | object/null | 结构化展示扩展字段，当前后端固定返回 `null` |
+| `result_payload` | object/null | 结构化展示扩展字段，当前后端固定返回 `null`；前端可从成功工具摘要中解析部分结构化结果 |
+
+前端当前归一化规则：
+
+1. 如果 `error` 不为空，前端展示错误提示，并清空结构化结果；
+2. 如果存在失败的 `tool_calls`，前端将失败工具转换为用户可读失败文案；
+3. 如果 `result_payload` 为空且最后一个成功工具的 `summary` 是 JSON，前端会尝试解析：
+   - `query_schedule` -> `schedule` 结构化赛程；
+   - `query_player_stats` -> `player` 结构化球员数据；
+   - `query_match_detail` -> `match_detail` 结构化比赛详情；
+4. 其他工具结果暂时以 `answer` 文本为主，同时保留 Trace 展示。
 
 ### 7.2 内部工具接口
 
@@ -586,7 +625,11 @@ classDiagram
 |---|---|---|---|
 | `player_name` | string | 是 | 球员姓名 |
 
-功能：查询 `players` 表，返回单个球员的球队、进球、助攻和出场次数。
+功能：查询单个球员数据。执行顺序为：
+
+1. 查询 `players` 表，返回场上球员的进球、助攻、出场次数、出场分钟、红黄牌等字段；
+2. 如果未命中，查询 `goalkeepers` 表，返回门将扑救次数和扑救成功率；
+3. 如果统计表未收录，但 `match_details` 有进球事件，则聚合进球数作为兜底结果。
 
 #### 7.2.3 `query_players`
 
@@ -597,7 +640,7 @@ classDiagram
 | `sort_by` | string | 否 | 排序字段，仅支持 `goals`、`assists`、`appearances` |
 | `limit` | int | 否 | 返回数量，范围 1 到 20 |
 
-功能：查询 `players` 表，支持球员筛选、球队筛选和排行榜查询。
+功能：查询 `players` 表，支持球员筛选、球队筛选和排行榜查询。球员姓名筛选会先处理常见简称，再使用模糊匹配。
 
 #### 7.2.4 `query_match_detail`
 
@@ -609,6 +652,30 @@ classDiagram
 
 功能：查询单场比赛详情。优先按 `match_id` 查询；也支持按两支球队查询，并允许主客队顺序反向匹配。
 
+#### 7.2.5 `query_top_scorer_by_team`
+
+| 参数 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `team` | string | 是 | 球队名称 |
+
+功能：查询 `players` 表中指定球队进球数最高的场上球员，返回球员姓名、球队、进球、助攻、出场次数和出场分钟等字段。
+
+#### 7.2.6 `query_top10_scorers`
+
+| 参数 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| 无 | - | - | 无输入参数 |
+
+功能：按 `players.goals` 降序查询射手榜前十，返回球员姓名、球队、进球、助攻、出场次数和出场分钟等字段。
+
+#### 7.2.7 `query_best_goalkeeper`
+
+| 参数 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| 无 | - | - | 无输入参数 |
+
+功能：按 `goalkeepers.saves` 降序查询扑救次数最多的门将，返回门将姓名、球队、扑救次数和扑救成功率。
+
 ## 8. 数据库物理设计
 
 ### 8.1 数据库概览
@@ -619,7 +686,7 @@ classDiagram
 tools/worldcup.db
 ```
 
-数据库类型为 SQLite。当前包含三张核心表：
+数据库类型为 SQLite。当前包含四张核心表：
 
 ```mermaid
 erDiagram
@@ -649,13 +716,25 @@ erDiagram
         INTEGER goals
         INTEGER assists
         INTEGER appearances
+        INTEGER total_minutes
+        REAL avg_minutes
+        INTEGER red_cards
+        INTEGER yellow_cards
+    }
+    goalkeepers {
+        INTEGER gk_id PK
+        TEXT player_name
+        TEXT team
+        INTEGER saves
+        REAL save_rate
     }
 ```
 
 说明：
 
 - `matches` 与 `match_details` 是一对多关系，一场比赛可以有多条进球事件；
-- `players` 是球员统计表，用于查询球员总进球、总助攻和出场次数；
+- `players` 是场上球员统计表，用于查询总进球、总助攻、出场次数、出场分钟和红黄牌；
+- `goalkeepers` 是门将统计表，用于查询扑救次数和扑救成功率；
 - 当前 `players` 与 `match_details` 不做外键强绑定，避免课程演示数据维护成本过高；
 - 工具层使用参数化 SQL，避免把用户输入直接拼接进条件值。
 
@@ -705,6 +784,10 @@ erDiagram
 | `goals` | INTEGER | DEFAULT 0 | 总进球数 |
 | `assists` | INTEGER | DEFAULT 0 | 总助攻数 |
 | `appearances` | INTEGER | DEFAULT 0 | 出场次数 |
+| `total_minutes` | INTEGER | DEFAULT 0 | 总出场分钟 |
+| `avg_minutes` | REAL | DEFAULT 0.0 | 场均出场分钟 |
+| `red_cards` | INTEGER | DEFAULT 0 | 红牌数 |
+| `yellow_cards` | INTEGER | DEFAULT 0 | 黄牌数 |
 
 主要用途：
 
@@ -712,11 +795,27 @@ erDiagram
 - 查询射手榜、助攻榜、出场榜；
 - 支持多轮比较问题。
 
+### 8.5 `goalkeepers` 表
+
+| 字段 | 类型 | 约束 | 说明 |
+|---|---|---|---|
+| `gk_id` | INTEGER | PRIMARY KEY AUTOINCREMENT | 门将唯一编号 |
+| `player_name` | TEXT | NOT NULL | 门将姓名 |
+| `team` | TEXT | NOT NULL | 所属球队 |
+| `saves` | INTEGER | DEFAULT 0 | 扑救次数 |
+| `save_rate` | REAL | DEFAULT 0.0 | 扑救成功率 |
+
+主要用途：
+
+- 查询扑救次数最多的门将；
+- 查询单个门将扑救数据；
+- 避免把“最佳门将”错误地混入场上球员射手榜逻辑。
+
 ## 9. UI 界面设计
 
 ### 9.1 页面结构
 
-当前前端主要包括首页展示区和智能查询页。系统核心演示入口是智能查询页。
+当前前端主要包括首页展示区和智能查询页。首页用于展示课程演示数据和快速查询入口；智能查询页是系统核心演示入口，负责把自然语言问题发送给后端，并展示回答、结构化结果和工具调用过程。
 
 ```mermaid
 flowchart TB
@@ -725,12 +824,14 @@ flowchart TB
     Page --> Chat[ChatWorkspace 对话区]
     Page --> Result[ResultShowcase 结果区]
     Page --> Trace[TraceInspector 工具调用过程]
+    Page --> Theme[ThemeToggleButton 主题切换]
     Page --> Footer[SiteFooter 页脚]
 
     Chat --> Input[自然语言输入框]
     Chat --> Messages[用户/系统消息列表]
-    Result --> Cards[赛程/球员/比赛详情展示]
+    Result --> Cards[赛程/球员/比赛详情结构化展示]
     Result --> Fallback[answer 文本展示]
+    Cards --> Team[TeamIdentity 球队视觉/国旗]
     Trace --> Count[调用次数]
     Trace --> Status[整体状态]
     Trace --> Detail[工具名/参数/摘要]
@@ -742,9 +843,11 @@ flowchart TB
 2. 前端将当前 `messages` 转换为 `history`；
 3. 前端调用 `sendChatMessage(userInput, history)`；
 4. 后端返回 `answer`、`tool_calls`、`error`、`result_payload`；
-5. 前端将用户消息和助手消息追加到对话区；
-6. `ResultShowcase` 展示查询结果；
-7. `TraceInspector` 展示工具调用过程。
+5. 前端通过 `normalizeAgentResponse` 统一响应结构；
+6. 如果后端未返回 `result_payload`，前端尝试从成功工具的 JSON `summary` 解析赛程、球员或比赛详情；
+7. 前端将用户消息和助手消息追加到对话区；
+8. `ResultShowcase` 展示结构化结果或文本回答；
+9. `TraceInspector` 展示工具调用过程。
 
 ### 9.3 状态设计
 
@@ -756,7 +859,18 @@ flowchart TB
 | 失败 | 系统错误或工具失败 | 展示错误提示和失败工具摘要 |
 | 部分成功 | 多工具调用中部分失败、部分成功 | 展示失败原因，同时展示成功工具结果 |
 
-### 9.4 UI 与 Agent 设计的关系
+### 9.4 前端视觉资源设计
+
+前端通过 `frontend/src/data/teamVisuals.js` 和 `frontend/src/assets/flags/*.svg` 管理球队视觉信息。`TeamIdentity` 组件根据球队名称读取对应视觉配置，并展示球队简称、主题色和国旗图标。
+
+该设计的作用是：
+
+- 让首页和查询结果不只是文本展示，而是有明确球队识别；
+- 将球队视觉信息集中在数据配置文件中，避免散落在页面组件里；
+- 当新增球队或替换国旗资源时，只需维护静态资源和映射表；
+- 与后端解耦，后端仍只返回球队名称等事实字段。
+
+### 9.5 UI 与 Agent 设计的关系
 
 本系统的 UI 不只是普通聊天框，还承担“证明智能体过程”的职责。Trace 面板展示工具名称、输入参数、执行状态和结果摘要，使评审人员能够看到：
 
@@ -802,11 +916,15 @@ flowchart TB
 {
   "success": true,
   "data": {
-    "player_name": "C罗",
-    "team": "葡萄牙",
-    "goals": 4,
+    "player_name": "利昂内尔・梅西",
+    "team": "阿根廷",
+    "goals": 8,
     "assists": 1,
-    "appearances": 5
+    "appearances": 5,
+    "total_minutes": 411,
+    "avg_minutes": 82.2,
+    "red_cards": 0,
+    "yellow_cards": 0
   },
   "error": null
 }
@@ -822,7 +940,11 @@ flowchart TB
 | 纯符号或低信息输入 | 返回明确示例，不调用模型 |
 | 明显超范围问题 | 返回当前系统支持范围，不调用模型 |
 | 模糊评价问题 | 提示用户选择进球、助攻或出场次数等指标 |
+| 最佳门将/扑救最多 | 调用 `query_best_goalkeeper`，不按场上球员射手榜处理 |
 | 对阵详情无记录 | 返回比赛详情查询失败 |
+| 球员简称与数据库全名不一致 | 通过 `player_aliases.py` 生成候选名再查询 |
+| 球员统计表缺失但进球事件存在 | 聚合 `match_details` 中该球员进球记录作为兜底 |
+| 后端未返回 `result_payload` | 前端尝试解析成功工具 `summary`，无法解析则展示 `answer` 文本 |
 | 单个工具失败 | 记录失败工具并展示错误原因 |
 | 多工具部分失败 | 展示失败原因，同时保留成功结果 |
 | 模型服务异常 | 返回“当前无法完成请求，请稍后重试” |
@@ -830,7 +952,7 @@ flowchart TB
 
 ## 12. 测试与验证设计
 
-当前测试分为三层：
+当前测试按多层覆盖：
 
 | 测试类型 | 文件/命令 | 目的 |
 |---|---|---|
@@ -846,6 +968,9 @@ flowchart TB
 - 查询单球员数据；
 - 查询球员排行；
 - 查询比赛详情；
+- 查询队内最佳射手；
+- 查询射手榜前十；
+- 查询扑救次数最多的门将；
 - 多轮比较；
 - 空输入；
 - 低信息输入；
@@ -859,7 +984,7 @@ flowchart TB
 
 - 接入官方或第三方实时赛事 API；
 - 增加积分榜、球队排名和小组出线规则；
-- 扩展球员位置、门将扑救、零封、失球等字段；
+- 扩展球员位置、门将零封、失球、预期进球等字段；
 - 增加用户登录和长期历史保存；
 - 后端直接返回 `result_payload`，由前端渲染更丰富的结构化卡片；
 - 增加部署配置和线上访问地址；
