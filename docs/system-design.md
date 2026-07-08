@@ -128,44 +128,28 @@ flowchart TB
 ### 3.1 功能层次结构
 
 ```mermaid
+%%{init: {"flowchart": {"nodeSpacing": 35, "rankSpacing": 42}, "themeVariables": {"fontSize": "18px"}}}%%
 flowchart TB
-    Root[WorldCupAgent]
+    Root[WorldCupAgent 功能层次]
 
-    Root --> FE[前端交互]
-    FE --> FE1[首页赛事展示]
-    FE --> FE2[自然语言输入]
-    FE --> FE3[回答与结构化结果]
-    FE --> FE4[工具 Trace]
-    FE --> FE5[主题/球队视觉]
+    subgraph Upper[用户交互与智能处理]
+        direction LR
+        FE[前端交互层<br/>首页/查询/结果/Trace/主题视觉]
+        API[后端接口层<br/>健康检查/聊天查询/契约转换]
+        Agent[Agent 核心层<br/>输入兜底/工具选择/结果解析/回答生成]
+        FE --> API --> Agent
+    end
 
-    Root --> API[后端接口]
-    API --> API1[健康检查]
-    API --> API2[聊天查询]
-    API --> API3[历史消息接收]
-    API --> API4[前端契约转换]
+    subgraph Lower[数据工具与验证支撑]
+        direction LR
+        Tools[世界杯工具层<br/>赛程/球员/比赛详情/排行/门将]
+        DB[数据层<br/>matches/match_details/players/goalkeepers]
+        Test[测试验证层<br/>工具自测/API与Agent测试/前端构建]
+        Tools --> DB --> Test
+    end
 
-    Root --> Agent[Agent 核心]
-    Agent --> AG1[输入兜底]
-    Agent --> AG2[工具选择]
-    Agent --> AG3[结果解析]
-    Agent --> AG4[混合回答生成]
-    Agent --> AG5[高风险推断回退]
-
-    Root --> Tools[工具集]
-    Tools --> T1[赛程/球员/比赛详情]
-    Tools --> T2[排行/队内射手/射手榜]
-    Tools --> T3[门将扑救]
-
-    Root --> DB[数据库]
-    DB --> D1[matches]
-    DB --> D2[match_details]
-    DB --> D3[players]
-    DB --> D4[goalkeepers]
-
-    Root --> Test[测试验证]
-    Test --> V1[工具自测]
-    Test --> V2[API/Agent 测试]
-    Test --> V3[前端构建]
+    Root --> FE
+    Agent --> Tools
 ```
 
 ### 3.2 核心功能与模块对应
