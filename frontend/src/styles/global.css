@@ -115,11 +115,18 @@ html {
 body {
   margin: 0;
   min-width: 320px;
-  background:
+  /* background:
     radial-gradient(circle at 14% 12%, var(--page-radial-1), transparent 24%),
     radial-gradient(circle at 84% 10%, var(--page-radial-2), transparent 22%),
     radial-gradient(circle at 70% 76%, var(--page-radial-3), transparent 20%),
-    var(--bg);
+    var(--bg); */
+  background:
+    linear-gradient(rgba(11, 18, 32, 0.78), rgba(11, 18, 32, 0.82)),
+    url("../assets/stadium-background.jpg");
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
   color: var(--text-main);
   font-family: "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif;
 }
@@ -227,4 +234,13 @@ body,
 
 .team-identity.is-compact .team-crest-emoji {
   font-size: 18px;
+}
+:root[data-theme="light"] body {
+  background:
+    linear-gradient(rgba(244, 248, 251, 0.66), rgba(244, 248, 251, 0.72)),
+    url("../assets/stadium-background.jpg");
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
 }

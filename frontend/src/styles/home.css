@@ -7,10 +7,15 @@
 .page-background {
   position: absolute;
   inset: 0;
-  background:
+  /* background:
     linear-gradient(135deg, var(--page-overlay-1), transparent 28%),
-    linear-gradient(315deg, var(--page-overlay-2), transparent 30%);
+    linear-gradient(315deg, var(--page-overlay-2), transparent 30%); */
+  background:
+    linear-gradient(135deg, rgba(11, 18, 32, 0.26), transparent 30%),
+    linear-gradient(315deg, rgba(11, 18, 32, 0.38), transparent 32%);
+  position: fixed;
   pointer-events: none;
+  z-index: 0;
 }
 
 .app-header,
@@ -29,7 +34,7 @@
   justify-content: space-between;
   gap: 16px;
   border: 1px solid var(--line-strong);
-  border-radius: 24px;
+  border-radius: 14px;
   background: var(--header-bg);
   backdrop-filter: blur(18px);
   box-shadow: var(--shadow-strong);
@@ -109,7 +114,7 @@
   overflow: hidden;
   isolation: isolate;
   padding: 38px;
-  border-radius: 32px;
+  border-radius: 22px;
   background: var(--hero-copy-bg);
 }
 
@@ -169,6 +174,21 @@
   letter-spacing: -0.04em;
 }
 
+.hero-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.hero-title-emblem {
+  width: clamp(76px, 30vw, 200px);
+  height: auto;
+  flex-shrink: 0;
+  opacity: 0.96;
+  filter: drop-shadow(0 14px 28px rgba(212, 166, 61, 0.18));
+}
+
 .hero-copy p {
   max-width: 58ch;
   margin: 18px 0 28px;
@@ -208,7 +228,7 @@
 .hero-duel-strip {
   margin-top: 22px;
   padding: 16px 18px;
-  border-radius: 22px;
+  border-radius: 12px;
   background:
     linear-gradient(135deg, rgba(56, 189, 248, 0.08), rgba(34, 197, 94, 0.08)),
     rgba(11, 18, 32, 0.16);
@@ -247,7 +267,7 @@
   position: relative;
   overflow: hidden;
   padding: 8px;
-  border-radius: 32px;
+  border-radius: 22px;
   background: var(--hero-scoreboard-bg);
   color: var(--text-main);
 }
@@ -255,8 +275,8 @@
 .hero-illustration-card {
   position: relative;
   overflow: hidden;
-  margin-bottom: 22px;
-  border-radius: 24px;
+  margin-bottom: 0;
+  border-radius: 14px;
   background:
     linear-gradient(160deg, rgba(56, 189, 248, 0.12), rgba(34, 197, 94, 0.08)),
     rgba(255, 255, 255, 0.02);
@@ -267,17 +287,10 @@
 .hero-illustration-main {
   display: block;
   width: 100%;
-  height: auto;
-}
-
-.hero-illustration-trophy {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  width: 72px;
-  height: auto;
-  opacity: 0.88;
-  filter: drop-shadow(0 10px 20px rgba(212, 166, 61, 0.18));
+  height: 100%;
+  min-height: 560px;
+  object-fit: cover;
+  object-position: center top;
 }
 
 .hero-scoreboard.ant-card::before {
@@ -308,6 +321,10 @@
 
 .hero-scoreboard .ant-card-body {
   padding: 28px;
+}
+
+.hero-scoreboard .hero-illustration-card {
+  height: 100%;
 }
 
 .scoreboard-corner-badge {
@@ -506,7 +523,7 @@
   overflow: hidden;
   margin-top: 24px;
   padding: 28px;
-  border-radius: 28px;
+  border-radius: 18px;
   background: var(--section-bg);
 }
 
@@ -559,7 +576,7 @@
 .query-answer-card.ant-card,
 .agent-step-card.ant-card,
 .agent-detail-card.ant-card {
-  border-radius: 24px;
+  border-radius: 14px;
   background: var(--card-bg);
   color: var(--text-main);
 }
@@ -902,7 +919,7 @@
   width: min(1240px, calc(100% - 40px));
   margin: 0 auto 28px;
   padding: 18px 24px 24px;
-  border-radius: 24px;
+  border-radius: 14px;
   background: var(--header-bg);
   color: var(--text-soft);
 }
@@ -993,6 +1010,15 @@
 
   .hero-copy h1 {
     max-width: none;
+  }
+
+  .hero-title-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .hero-title-emblem {
+    width: 88px;
   }
 
   .hero-metrics {
