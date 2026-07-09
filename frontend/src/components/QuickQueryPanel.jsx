@@ -4,6 +4,7 @@ import {
   MessageOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
+import FormattedText from "./FormattedText";
 
 function QuickQueryPanel({
   queries,
@@ -48,7 +49,7 @@ function QuickQueryPanel({
 
         <div className="answer-box">
           <div className="answer-label">系统回答</div>
-          <p>{trace.finalAnswer}</p>
+          <FormattedText text={trace.finalAnswer} />
           <Button
             type="default"
             icon={<ArrowRightOutlined />}

@@ -26,6 +26,10 @@ const playerAvatarMap = {
   "利桑德罗·马丁内斯": "马",
   "洛佩斯·卡布拉尔": "卡",
   "迪内·博尔热斯": "博",
+  亚西尔: "亚",
+  济科: "济",
+  罗梅罗: "罗",
+  恩佐: "恩",
 };
 
 const formatTeam = (name) => ({
@@ -66,53 +70,53 @@ const brazilScheduleRows = [
   },
 ];
 
-const argentinaCapeVerdeMatch = {
-  id: "match-87",
+const argentinaEgyptMatch = {
+  id: "match-95",
   homeTeam: "阿根廷",
-  awayTeam: "佛得角",
-  matchDate: "2026-07-04",
-  matchTime: "06:00",
+  awayTeam: "埃及",
+  matchDate: "2026-07-08",
+  matchTime: "00:00",
   status: "本地库记录",
   homeScore: 3,
   awayScore: 2,
-  stage: "1/16决赛",
+  stage: "1/8决赛",
 };
 
-const argentinaCapeVerdeEvents = [
+const argentinaEgyptEvents = [
   {
-    id: "event-87-01",
+    id: "event-95-01",
+    teamName: "埃及",
+    playerName: "亚西尔",
+    minute: "15'",
+    goalType: "进球",
+  },
+  {
+    id: "event-95-02",
+    teamName: "埃及",
+    playerName: "济科",
+    minute: "67'",
+    goalType: "进球",
+  },
+  {
+    id: "event-95-03",
+    teamName: "阿根廷",
+    playerName: "罗梅罗",
+    minute: "79'",
+    goalType: "进球",
+  },
+  {
+    id: "event-95-04",
     teamName: "阿根廷",
     playerName: "梅西",
-    minute: "29'",
+    minute: "83'",
     goalType: "进球",
   },
   {
-    id: "event-87-02",
-    teamName: "佛得角",
-    playerName: "德罗伊·杜阿尔特",
-    minute: "59'",
-    goalType: "进球",
-  },
-  {
-    id: "event-87-03",
+    id: "event-95-05",
     teamName: "阿根廷",
-    playerName: "利桑德罗·马丁内斯",
+    playerName: "恩佐",
     minute: "92'",
     goalType: "进球",
-  },
-  {
-    id: "event-87-04",
-    teamName: "佛得角",
-    playerName: "洛佩斯·卡布拉尔",
-    minute: "103'",
-    goalType: "进球",
-  },
-  {
-    id: "event-87-05",
-    teamName: "佛得角",
-    playerName: "迪内·博尔热斯",
-    minute: "111'",
-    goalType: "乌龙球",
   },
 ];
 
@@ -215,32 +219,32 @@ const queryCases = [
   {
     id: "query-03",
     label: "比赛详情",
-    placeholder: "例如：请查询阿根廷和佛得角的比赛详情",
+    placeholder: "例如：请查询阿根廷和埃及的比赛详情",
     request: {
       user_input: quickQueries[2].queryText,
       history: [],
     },
     response: {
       answer:
-        "比赛详情查询结果（本地课程演示数据库）：阿根廷 3:2 佛得角，并包含进球事件。",
+        "比赛详情查询结果（本地课程演示数据库）：阿根廷 3:2 埃及，并包含进球事件。",
       tool_calls: [
         buildToolCall(
           "query_match_detail",
-          { home_team: "阿根廷", away_team: "佛得角" },
+          { home_team: "阿根廷", away_team: "埃及" },
           "success",
-          "返回 match_id=87 的比分和进球事件。"
+          "返回 match_id=95 的比分和进球事件。"
         ),
       ],
       error: null,
       result_payload: {
         mode: "events",
-        title: "阿根廷 vs 佛得角进球事件",
+        title: "阿根廷 vs 埃及进球事件",
         summary: "共 5 条进球事件，数据来自本地 SQLite 演示库。",
         match: {
-          homeTeam: formatTeam(argentinaCapeVerdeMatch.homeTeam),
-          awayTeam: formatTeam(argentinaCapeVerdeMatch.awayTeam),
+          homeTeam: formatTeam(argentinaEgyptMatch.homeTeam),
+          awayTeam: formatTeam(argentinaEgyptMatch.awayTeam),
         },
-        events: argentinaCapeVerdeEvents.map((event) => ({
+        events: argentinaEgyptEvents.map((event) => ({
           ...event,
           avatar: playerAvatarMap[event.playerName] ?? event.playerName.slice(0, 1),
           team: formatTeam(event.teamName),
@@ -276,6 +280,7 @@ export function resolveExampleCaseByQuestion(question) {
   }
 
   if (
+    normalized.includes("埃及") ||
     normalized.includes("佛得角") ||
     normalized.includes("阿根廷")
   ) {

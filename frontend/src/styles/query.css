@@ -160,6 +160,16 @@
   line-height: 1.75;
 }
 
+.formatted-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.formatted-text strong {
+  color: var(--text-main);
+  font-weight: 800;
+}
+
 .chat-note {
   padding-left: 8px;
   font-size: 13px;

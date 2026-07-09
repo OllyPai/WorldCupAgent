@@ -6,6 +6,7 @@ import {
   SendOutlined,
   ThunderboltOutlined,
 } from "@ant-design/icons";
+import FormattedText from "./FormattedText";
 
 const { TextArea } = Input;
 
@@ -65,7 +66,7 @@ function ChatWorkspace({
                 {/* <div className="chat-role">
                   {message.role === "user" ? "用户问题" : "系统回答"}
                 </div> */}
-                <p>{message.content}</p>
+                <FormattedText text={message.content} />
               </div>
               {message.note ? <div className="chat-note">{message.note}</div> : null}
             </div>

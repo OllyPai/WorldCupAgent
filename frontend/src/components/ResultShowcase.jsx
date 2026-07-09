@@ -1,4 +1,5 @@
 import { Card, Empty, Tag } from "antd";
+import FormattedText from "./FormattedText";
 import MatchScheduleList from "./MatchScheduleList";
 import PlayerSpotlightGrid from "./PlayerSpotlightGrid";
 import TeamIdentity from "./TeamIdentity";
@@ -15,7 +16,7 @@ function ResultShowcase({ result, fallbackAnswer = "" }) {
               <p>以下内容来自智能体调用工具后的整理结果。</p>
             </div>
             <div className="query-answer-fallback-box">
-              <p>{fallbackAnswer}</p>
+              <FormattedText text={fallbackAnswer} />
             </div>
           </div>
         ) : (
@@ -97,7 +98,7 @@ function ResultShowcase({ result, fallbackAnswer = "" }) {
 
     return (
       <div className="query-answer-fallback-box">
-        <p>{result.content ?? fallbackAnswer}</p>
+        <FormattedText text={result.content ?? fallbackAnswer} />
       </div>
     );
   };
