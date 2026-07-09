@@ -27,10 +27,10 @@
   font-weight: 800;
 }
 
-.query-topbar-subtitle {
+/* .query-topbar-subtitle {
   margin-top: 6px;
   color: var(--text-soft);
-}
+} */
 
 .query-workspace-layout {
   display: grid;
@@ -47,7 +47,7 @@
 }
 
 .query-error-alert {
-  border-radius: 10px;
+  border-radius: 20px;
 }
 
 .query-chat-card.ant-card,

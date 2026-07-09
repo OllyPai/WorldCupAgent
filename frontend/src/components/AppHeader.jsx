@@ -2,6 +2,7 @@ import { Button, Space, Tag } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import ThemeToggleButton from "./ThemeToggleButton";
+import worldCupEmblem from "../assets/world-cup-2026-emblem.svg";
 
 function AppHeader() {
   const navigate = useNavigate();
@@ -9,12 +10,11 @@ function AppHeader() {
   return (
     <header className="app-header">
       <div className="brand-block">
-        <div className="brand-mark">WC</div>
+        <div className="brand-mark">
+          <img src={worldCupEmblem} alt="2026 世界杯会徽" className="brand-mark-image" />
+        </div>
         <div>
           <div className="brand-title">世界杯赛事中心</div>
-          <div className="brand-subtitle">
-            实时赛程 · 球员数据 · 比赛详情
-          </div>
         </div>
       </div>
 
@@ -28,7 +28,7 @@ function AppHeader() {
       <Space size="middle">
         <ThemeToggleButton />
         <Tag color="cyan" className="header-tag">
-          世界杯
+          WORLD CUP 2026
         </Tag>
         <Button
           type="primary"

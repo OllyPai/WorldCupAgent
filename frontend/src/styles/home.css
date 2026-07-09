@@ -26,18 +26,18 @@
 }
 
 .app-header {
-  width: min(1240px, calc(100% - 40px));
-  margin: 20px auto 0;
-  padding: 16px 20px;
+  width: min(1240px, calc(100% - 48px));
+  margin: 12px auto 0;
+  padding: 10px 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  border: 1px solid var(--line-strong);
-  border-radius: 14px;
-  background: var(--header-bg);
-  backdrop-filter: blur(18px);
-  box-shadow: var(--shadow-strong);
+  gap: 24px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  backdrop-filter: none;
+  box-shadow: none;
   color: var(--text-main);
 }
 
@@ -52,11 +52,17 @@
   height: 48px;
   display: grid;
   place-items: center;
-  border-radius: 16px;
-  background: linear-gradient(135deg, var(--green-main), var(--blue-main));
-  color: #fff;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.brand-mark-image {
+  /* width: 48px; */
+  height: 48px;
+  display: block;
+  object-fit: contain;
 }
 
 .brand-title {
@@ -64,26 +70,39 @@
   font-weight: 700;
 }
 
-.brand-subtitle {
+/* .brand-subtitle {
   color: var(--text-soft);
   font-size: 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-}
+} */
 
 .header-nav {
   display: flex;
   align-items: center;
-  gap: 22px;
-  color: var(--text-soft);
+  gap: 30px;
+  color: var(--text-main);
+}
+
+.header-nav a {
+  font-size: 15px;
+  font-weight: 600;
+  color: inherit;
+  opacity: 0.96;
 }
 
 .header-nav a:hover {
-  color: var(--blue-soft);
+  color: var(--text-main);
+  opacity: 1;
 }
 
 .header-tag {
   margin-inline-end: 0;
+  font-weight: 700;
+}
+
+.app-header .ant-space {
+  gap: 12px !important;
 }
 
 .home-page {
@@ -94,10 +113,7 @@
 
 .hero-banner {
   position: relative;
-  display: grid;
-  grid-template-columns: 1.2fr 0.9fr;
-  gap: 24px;
-  align-items: stretch;
+  display: block;
 }
 
 .hero-copy,
@@ -113,36 +129,25 @@
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  padding: 38px;
-  border-radius: 22px;
-  background: var(--hero-copy-bg);
+  padding: 40px 32px 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  text-align: center;
 }
 
 .hero-copy::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(135deg, rgba(7, 17, 29, 0.92), rgba(11, 18, 32, 0.78)),
-    radial-gradient(circle at 72% 18%, rgba(56, 189, 248, 0.12), transparent 22%);
-  opacity: 1;
-  z-index: -2;
+  content: none;
 }
 
 .hero-copy::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 18% 26%, rgba(56, 189, 248, 0.24), transparent 22%),
-    radial-gradient(circle at 88% 16%, rgba(34, 197, 94, 0.18), transparent 18%),
-    linear-gradient(180deg, rgba(11, 18, 32, 0.1), rgba(11, 18, 32, 0.38));
-  z-index: -1;
+  content: none;
 }
 
-.hero-chip {
+/* .hero-chip {
   margin-bottom: 18px;
-}
+} */
 
 .hero-atmosphere-glow {
   position: absolute;
@@ -154,7 +159,7 @@
   opacity: 0.78;
 }
 
-.hero-atmosphere-left {
+/* .hero-atmosphere-left {
   left: -72px;
   bottom: -112px;
   background: radial-gradient(circle, rgba(34, 197, 94, 0.32), transparent 70%);
@@ -164,36 +169,37 @@
   right: -52px;
   top: -72px;
   background: radial-gradient(circle, rgba(56, 189, 248, 0.28), transparent 72%);
-}
+} */
 
 .hero-copy h1 {
   margin: 0;
-  max-width: 8ch;
+  max-width: none;
   font-size: clamp(40px, 6vw, 68px);
-  line-height: 1.02;
-  letter-spacing: -0.04em;
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.05em;
 }
 
 .hero-title-row {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: center;
   gap: 20px;
 }
 
-.hero-title-emblem {
-  width: clamp(76px, 30vw, 200px);
-  height: auto;
-  flex-shrink: 0;
-  opacity: 0.96;
-  filter: drop-shadow(0 14px 28px rgba(212, 166, 61, 0.18));
-}
-
 .hero-copy p {
-  max-width: 58ch;
-  margin: 18px 0 28px;
+  max-width: 32ch;
+  margin: 18px auto 28px;
   color: var(--text-body);
   line-height: 1.8;
+}
+
+.hero-copy .ant-space {
+  justify-content: center;
+}
+
+.hero-illustration-wrap {
+  margin-top: 24px;
 }
 
 .hero-metrics {
@@ -263,68 +269,16 @@
   letter-spacing: 0.12em;
 }
 
-.hero-scoreboard.ant-card {
-  position: relative;
-  overflow: hidden;
-  padding: 8px;
-  border-radius: 22px;
-  background: var(--hero-scoreboard-bg);
-  color: var(--text-main);
-}
-
-.hero-illustration-card {
-  position: relative;
-  overflow: hidden;
-  margin-bottom: 0;
-  border-radius: 14px;
-  background:
-    linear-gradient(160deg, rgba(56, 189, 248, 0.12), rgba(34, 197, 94, 0.08)),
-    rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-}
-
 .hero-illustration-main {
   display: block;
-  width: 100%;
-  height: 100%;
-  min-height: 560px;
-  object-fit: cover;
+  width: 50%;
+  height: auto;
+  min-height: 0;
+  object-fit: contain;
   object-position: center top;
-}
+  margin: 0 auto;
+  border-radius: 8px;
 
-.hero-scoreboard.ant-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 24%),
-    radial-gradient(circle at 82% 16%, rgba(248, 214, 109, 0.18), transparent 20%),
-    repeating-linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.03) 0,
-      rgba(255, 255, 255, 0.03) 2px,
-      transparent 2px,
-      transparent 18px
-    );
-  pointer-events: none;
-}
-
-.hero-scoreboard.ant-card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(248, 214, 109, 0.05), transparent 34%);
-  opacity: 0.16;
-  pointer-events: none;
-}
-
-.hero-scoreboard .ant-card-body {
-  padding: 28px;
-}
-
-.hero-scoreboard .hero-illustration-card {
-  height: 100%;
 }
 
 .scoreboard-corner-badge {
@@ -401,7 +355,7 @@
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
-  border-radius: 18px;
+  border-radius: 8px;
   background:
     linear-gradient(135deg, var(--team-accent-soft), rgba(255, 255, 255, 0.03) 72%),
     rgba(255, 255, 255, 0.01);
@@ -768,7 +722,7 @@
 .player-stat-row > div {
   flex: 1;
   padding: 14px;
-  border-radius: 18px;
+  border-radius: 8px;
   background: var(--panel-strong-bg);
   border: 1px solid var(--line);
 }
@@ -1013,12 +967,7 @@
   }
 
   .hero-title-row {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .hero-title-emblem {
-    width: 88px;
+    justify-content: center;
   }
 
   .hero-metrics {

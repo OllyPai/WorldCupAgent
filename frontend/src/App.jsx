@@ -25,8 +25,7 @@ const themeTokens = {
       colorBorder: "#23314A",
       colorSplit: "#23314A",
       borderRadius: 18,
-      fontFamily:
-        "'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif",
+      fontFamily: "'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif",
     },
   },
   light: {
@@ -45,8 +44,7 @@ const themeTokens = {
       colorBorder: "#CBD5E1",
       colorSplit: "#CBD5E1",
       borderRadius: 18,
-      fontFamily:
-        "'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif",
+      fontFamily: "'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif",
     },
   },
 };
