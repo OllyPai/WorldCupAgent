@@ -4,6 +4,39 @@ import MatchScheduleList from "./MatchScheduleList";
 import PlayerSpotlightGrid from "./PlayerSpotlightGrid";
 import TeamIdentity from "./TeamIdentity";
 
+function getLocalDateTimeKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+
+  return `${year}-${month}-${day} ${hours}:${minutes}`;
+}
+
+function inferMatchStatus(match) {
+  if (match.status) return match.status;
+
+  if (match.home_score === null || match.away_score === null) {
+    return "未开始";
+  }
+
+  if (match.match_date && match.match_time) {
+    const matchDateTime = `${match.match_date} ${match.match_time}`;
+    return matchDateTime > getLocalDateTimeKey() ? "未开始" : "已结束";
+  }
+
+  return "已结束";
+}
+
+function formatEventTag(eventType) {
+  if (eventType === "own_goal" || eventType === "乌龙球") {
+    return "OG";
+  }
+
+  return "⚽";
+}
+
 function ResultShowcase({ result, fallbackAnswer = "" }) {
   if (!result) {
     return (
@@ -38,9 +71,10 @@ function ResultShowcase({ result, fallbackAnswer = "" }) {
         awayTeam: m.away_team,
         homeScore: m.home_score,
         awayScore: m.away_score,
+        matchDate: m.match_date,
         matchTime: m.match_time,
         stage: m.stage,
-        status: "已结束", // 演示库数据默认为已结束
+        status: inferMatchStatus(m),
       }));
       return <MatchScheduleList matches={mappedMatches} />;
     }
@@ -86,7 +120,7 @@ function ResultShowcase({ result, fallbackAnswer = "" }) {
                   <div key={idx} className={`goal-item ${g.team === data.home_team ? "is-home" : "is-away"}`}>
                     <span className="goal-time">{g.goal_time}'</span>
                     <span className="goal-player">{g.player_name}</span>
-                    <Tag size="small">{g.event_type === "进球" ? "⚽" : "OG"}</Tag>
+                    <Tag size="small">{formatEventTag(g.event_type)}</Tag>
                   </div>
                 ))}
               </div>

@@ -1,72 +1,62 @@
-import {
-  featuredMatches,
-  goalEvents,
-  quickQueries,
-  todayMatches,
-} from "./homeMock";
+import { quickQueries } from "./homeMock";
 
-const teamMeta = {
-  巴西: { flag: "🇧🇷", code: "BRA" },
-  挪威: { flag: "🇳🇴", code: "NOR" },
-  葡萄牙: { flag: "🇵🇹", code: "POR" },
-  西班牙: { flag: "🇪🇸", code: "ESP" },
-  阿根廷: { flag: "🇦🇷", code: "ARG" },
-  佛得角: { flag: "🇨🇻", code: "CPV" },
-  埃及: { flag: "🇪🇬", code: "EGY" },
-  摩洛哥: { flag: "🇲🇦", code: "MAR" },
-  海地: { flag: "🇭🇹", code: "HAI" },
-  苏格兰: { flag: "🏴", code: "SCO" },
+const messiStatsData = {
+  player_name: "利昂内尔・梅西",
+  team: "阿根廷",
+  goals: 8,
+  assists: 1,
+  appearances: 5,
+  total_minutes: 411,
+  avg_minutes: 82.2,
+  red_cards: 0,
+  yellow_cards: 0,
 };
 
-const playerAvatarMap = {
-  梅西: "梅",
-  哈兰德: "哈",
-  内马尔: "内",
-  "德罗伊·杜阿尔特": "杜",
-  "利桑德罗·马丁内斯": "马",
-  "洛佩斯·卡布拉尔": "卡",
-  "迪内·博尔热斯": "博",
-  亚西尔: "亚",
-  济科: "济",
-  罗梅罗: "罗",
-  恩佐: "恩",
-};
-
-const formatTeam = (name) => ({
-  name,
-  ...(teamMeta[name] ?? { flag: "🏳️", code: name.slice(0, 3).toUpperCase() }),
-});
-
-const brazilScheduleRows = [
+const brazilScheduleData = [
   {
-    key: "brazil-13",
+    match_date: "2026-06-14",
+    match_time: "06:00",
+    home_team: "巴西",
+    away_team: "摩洛哥",
     stage: "小组赛C组",
-    homeTeam: formatTeam("巴西"),
-    awayTeam: formatTeam("摩洛哥"),
-    time: "2026-06-14 06:00",
-    score: "1 : 1",
-    status: "本地库记录",
-    stadium: "本地演示库未提供场馆",
+    home_score: 1,
+    away_score: 1,
   },
   {
-    key: "brazil-16",
+    match_date: "2026-06-20",
+    match_time: "08:30",
+    home_team: "巴西",
+    away_team: "海地",
     stage: "小组赛C组",
-    homeTeam: formatTeam("巴西"),
-    awayTeam: formatTeam("海地"),
-    time: "2026-06-20 08:30",
-    score: "3 : 0",
-    status: "本地库记录",
-    stadium: "本地演示库未提供场馆",
+    home_score: 3,
+    away_score: 0,
   },
   {
-    key: "brazil-91",
+    match_date: "2026-06-25",
+    match_time: "06:00",
+    home_team: "苏格兰",
+    away_team: "巴西",
+    stage: "小组赛C组",
+    home_score: 0,
+    away_score: 3,
+  },
+  {
+    match_date: "2026-06-30",
+    match_time: "01:00",
+    home_team: "巴西",
+    away_team: "日本",
+    stage: "1/16决赛",
+    home_score: 2,
+    away_score: 1,
+  },
+  {
+    match_date: "2026-07-06",
+    match_time: "04:00",
+    home_team: "巴西",
+    away_team: "挪威",
     stage: "1/8决赛",
-    homeTeam: formatTeam("巴西"),
-    awayTeam: formatTeam("挪威"),
-    time: "2026-07-06 04:00",
-    score: "1 : 2",
-    status: "本地库记录",
-    stadium: "本地演示库未提供场馆",
+    home_score: 1,
+    away_score: 2,
   },
 ];
 
@@ -172,7 +162,8 @@ const queryCases = [
         mode: "schedule",
         title: "巴西队本地演示赛程",
         summary: "以下为 tools/worldcup.db 中的演示数据，不代表官方实时数据。",
-        rows: brazilScheduleRows,
+        source_tools: ["query_schedule"],
+        data: brazilScheduleData,
       },
     },
   },
@@ -186,33 +177,22 @@ const queryCases = [
     },
     response: {
       answer:
-        "球员数据查询结果（本地课程演示数据库）：\n- 球员：梅西\n- 球队：阿根廷\n- 进球：7\n- 助攻：3\n- 出场次数：5",
+        "球员数据查询结果（本地课程演示数据库）：\n- 球员：利昂内尔・梅西\n- 球队：阿根廷\n- 进球：8\n- 助攻：1\n- 出场次数：5",
       tool_calls: [
         buildToolCall(
           "query_player_stats",
           { player_name: "梅西" },
           "success",
-          '{"player_name":"梅西","team":"阿根廷","goals":7,"assists":3,"appearances":5}'
+          JSON.stringify(messiStatsData)
         ),
       ],
       error: null,
       result_payload: {
-        mode: "scorecard",
+        mode: "player",
         title: "梅西本地演示统计",
         summary: "字段来自 players 表：球队、进球、助攻、出场次数。",
-        match: {
-          homeTeam: formatTeam("梅西"),
-          awayTeam: formatTeam("阿根廷"),
-          homeScore: 7,
-          awayScore: 3,
-          stage: "进球 : 助攻",
-        },
-        stats: [
-          { label: "球队", value: "阿根廷" },
-          { label: "进球", value: "7" },
-          { label: "助攻", value: "3" },
-          { label: "出场次数", value: "5" },
-        ],
+        source_tools: ["query_player_stats"],
+        data: messiStatsData,
       },
     },
   },
@@ -237,18 +217,26 @@ const queryCases = [
       ],
       error: null,
       result_payload: {
-        mode: "events",
+        mode: "match_detail",
         title: "阿根廷 vs 埃及进球事件",
         summary: "共 5 条进球事件，数据来自本地 SQLite 演示库。",
-        match: {
-          homeTeam: formatTeam(argentinaEgyptMatch.homeTeam),
-          awayTeam: formatTeam(argentinaEgyptMatch.awayTeam),
+        source_tools: ["query_match_detail"],
+        data: {
+          match_id: 95,
+          match_date: argentinaEgyptMatch.matchDate,
+          match_time: argentinaEgyptMatch.matchTime,
+          home_team: argentinaEgyptMatch.homeTeam,
+          away_team: argentinaEgyptMatch.awayTeam,
+          stage: argentinaEgyptMatch.stage,
+          home_score: argentinaEgyptMatch.homeScore,
+          away_score: argentinaEgyptMatch.awayScore,
+          goals: argentinaEgyptEvents.map((event) => ({
+            player_name: event.playerName,
+            team: event.teamName,
+            goal_time: Number(event.minute.replace("'", "")),
+            event_type: event.goalType === "乌龙球" ? "own_goal" : "goal",
+          })),
         },
-        events: argentinaEgyptEvents.map((event) => ({
-          ...event,
-          avatar: playerAvatarMap[event.playerName] ?? event.playerName.slice(0, 1),
-          team: formatTeam(event.teamName),
-        })),
       },
     },
   },
@@ -291,7 +279,7 @@ export function resolveExampleCaseByQuestion(question) {
     normalized.includes("葡萄牙") ||
     normalized.includes("西班牙")
   ) {
-    return queryCaseMap["query-04"];
+    return queryCaseMap["query-03"];
   }
 
   return queryCaseMap["query-01"];
