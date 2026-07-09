@@ -10,9 +10,9 @@ function QueryTopBar({ activeLabel }) {
     <header className="query-topbar">
       <div>
         <div className="query-topbar-title">智能查询工作台</div>
-        <div className="query-topbar-subtitle">
+        {/* <div className="query-topbar-subtitle">
           赛程查询 + 球员数据查询 + 比赛详情查询
-        </div>
+        </div> */}
       </div>
 
       <Space wrap>

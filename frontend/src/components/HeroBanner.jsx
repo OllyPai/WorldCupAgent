@@ -1,7 +1,6 @@
-import { Button, Card, Space, Tag } from "antd";
+import { Button, Space, Tag } from "antd";
 import { PlayCircleOutlined, RobotOutlined } from "@ant-design/icons";
 import heroPlayersImage from "../assets/hero-players.jpg";
-import worldCupEmblem from "../assets/world-cup-2026-emblem.svg";
 
 function HeroBanner({
   onPrimaryAction,
@@ -12,20 +11,16 @@ function HeroBanner({
       <div className="hero-copy">
         <div className="hero-atmosphere-glow hero-atmosphere-left" />
         <div className="hero-atmosphere-glow hero-atmosphere-right" />
-        <Tag color="red" className="hero-chip">
+        {/* <Tag color="red" className="hero-chip">
           世界杯进行中
-        </Tag>
+        </Tag> */}
         <div className="hero-title-row">
-          <h1>世界杯赛事<br></br> 一站掌握</h1>
-          <img
-            className="hero-title-emblem"
-            src={worldCupEmblem}
-            alt="2026 世界杯会徽"
-          />
+          <h1>世界杯<br />智能赛事中心</h1>
         </div>
         <p>
-          实时查询比赛赛程、比分、球员数据与赛事详情，
-          让每一场精彩对决尽在掌握。
+          让每一场精彩对决尽在掌握
+          <br />
+          AI驱动的赛程查询、球员分析与赛事洞察
         </p>
 
         <Space size="middle" wrap>
@@ -45,18 +40,14 @@ function HeroBanner({
             查看今日比赛
           </Button>
         </Space>
-
-      </div>
-
-      <Card className="hero-scoreboard" bordered={false}>
-        <div className="hero-illustration-card">
+        <div className="hero-illustration-wrap">
           <img
             className="hero-illustration-main"
             src={heroPlayersImage}
             alt="世界杯球员群像插图"
           />
         </div>
-      </Card>
+      </div>
     </section>
   );
 }
