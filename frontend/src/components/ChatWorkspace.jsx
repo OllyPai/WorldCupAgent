@@ -27,7 +27,7 @@ function ChatWorkspace({
   return (
     <Card className="query-chat-card" bordered={false}>
       <div className="section-headline">
-        <span className="section-kicker">对话界面</span>
+        <span className="section-kicker">在这里对话</span>
         <h2>问你想问，获取赛程、球员数据或比赛详情</h2>
       </div>
 
@@ -62,9 +62,9 @@ function ChatWorkspace({
             />
             <div className="chat-bubble-wrap">
               <div className="chat-bubble">
-                <div className="chat-role">
+                {/* <div className="chat-role">
                   {message.role === "user" ? "用户问题" : "系统回答"}
-                </div>
+                </div> */}
                 <p>{message.content}</p>
               </div>
               {message.note ? <div className="chat-note">{message.note}</div> : null}
