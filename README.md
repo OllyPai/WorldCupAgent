@@ -2,7 +2,7 @@
 
 世界杯工具调用智能体课程项目。
 
-当前系统实现了一个基于 LangChain + DeepSeek 的 Agent：用户用自然语言提问，Agent 判断是否需要调用工具，再从本地 SQLite 课程演示数据库中查询赛程、球员数据或比赛详情，并返回给前端展示。
+当前系统实现了一个基于 LangChain + DeepSeek 的 Agent：用户用自然语言提问，Agent 判断是否需要调用工具，再从本地 SQLite 课程演示数据库中查询赛程、球员数据、球员排行、队内最佳射手、门将扑救或比赛详情，并返回给前端展示。
 
 当前数据来自 `tools/worldcup.db`，定位为课程演示数据，不代表官方实时数据。
 
@@ -10,7 +10,14 @@
 
 - 自然语言问答入口；
 - 自动选择工具；
-- 三个已注册工具：赛程查询、球员数据查询、比赛详情查询；
+- 七个已注册工具：
+  - `query_schedule`：赛程查询；
+  - `query_player_stats`：单个球员数据查询；
+  - `query_players`：球员列表与排行查询；
+  - `query_match_detail`：比赛详情查询；
+  - `query_top_scorer_by_team`：队内最佳射手查询；
+  - `query_best_goalkeeper`：门将扑救排行查询；
+  - `query_top10_scorers`：射手榜前十查询；
 - FastAPI HTTP 接口：`GET /api/health`、`POST /api/chat`；
 - 统一返回 `answer / tool_calls / error / result_payload`；
 - 工具型回答只基于工具返回字段生成，避免模型补充工具外事实；
@@ -131,7 +138,13 @@ Content-Type: application/json
     }
   ],
   "error": null,
-  "result_payload": null
+  "result_payload": {
+    "mode": "player",
+    "title": "梅西数据统计",
+    "summary": "球员数据来自当前数据库。",
+    "source_tools": ["query_player_stats"],
+    "data": {"player_name": "梅西", "team": "阿根廷", "goals": 8}
+  }
 }
 ```
 
@@ -157,6 +170,30 @@ curl -X POST http://localhost:8000/api/chat \
 curl -X POST http://localhost:8000/api/chat \
   -H "Content-Type: application/json" \
   -d '{"user_input":"请查询阿根廷和佛得角的比赛详情","history":[]}'
+```
+
+队内最佳射手查询：
+
+```bash
+curl -X POST http://localhost:8000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"user_input":"阿根廷进球最多的球员是谁","history":[]}'
+```
+
+射手榜查询：
+
+```bash
+curl -X POST http://localhost:8000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"user_input":"谁是进球最多的球员","history":[]}'
+```
+
+门将扑救查询：
+
+```bash
+curl -X POST http://localhost:8000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"user_input":"谁是扑救最多的门将","history":[]}'
 ```
 
 特殊输入兜底：
@@ -197,7 +234,7 @@ npm run build
 | `answer` | 聊天气泡主内容 |
 | `tool_calls` | Trace 面板 / 工具调用过程 |
 | `error` | 不为空时展示错误提示 |
-| `result_payload` | 当前固定为 `null`，暂不作为核心展示依赖 |
+| `result_payload` | 可选结构化展示数据；没有合适结构时为 `null` |
 
 详细前端接入说明见：
 
@@ -250,18 +287,36 @@ uvicorn backend.app:app --reload --port 8000
 
 ### `result_payload` 是 `null`
 
-这是当前设计。现阶段前端先用 `answer` 展示主结果，用 `tool_calls` 展示工具过程；结构化卡片后续再单独约定。
+这是允许的。`answer` 和 `tool_calls` 是核心结果；`result_payload` 是增强展示字段。前端遇到 `null` 或暂不支持的 `mode` 时，降级展示 `answer` 即可。
 
-### 查询不到“某国进球最多的球员”
+当前支持的 `result_payload.mode`：
 
-数据库可以通过排序得到这类结果，但当前还没有暴露对应工具。后续应由工具层新增类似 `query_top_scorer_by_team` 的接口，再由 Agent 注册使用。
+| mode | 用途 |
+|---|---|
+| `schedule` | 赛程列表 |
+| `player` | 单球员卡片 |
+| `player_ranking` | 球员排行 |
+| `player_comparison` | 多球员对比 |
+| `goalkeeper` | 门将数据 |
+| `match_detail` | 比赛详情 |
+
+### 如何查询“某国进球最多的球员”
+
+当前已支持队内最佳射手查询。可以这样问：
+
+```text
+阿根廷进球最多的球员是谁？
+法国队内最佳射手是谁？
+```
+
+如果返回未查询到，通常表示当前本地课程演示数据库中没有该球队的球员数据，或球队名称没有匹配到。
 
 ## 项目结构
 
 ```text
 agent.py                          # Agent 核心与统一入口
 backend/app.py                    # FastAPI HTTP 适配层
-tools/                            # 三个工具与 SQLite 数据库
+tools/                            # 七个查询工具与 SQLite 数据库
 tests/test_minimal_agent.py       # Agent 离线测试
 test_tools.py                     # 工具层自测
 frontend/                         # React + Vite 前端

@@ -179,6 +179,7 @@ def _special_input_response(user_input: str) -> dict[str, Any] | None:
             "answer": "请输入明确的世界杯查询问题，例如：请查询巴西队赛程。",
             "tool_calls": [],
             "error": "invalid_input",
+            "result_payload": None,
         }
 
     if _is_obviously_unsupported_query(text):
@@ -186,6 +187,7 @@ def _special_input_response(user_input: str) -> dict[str, Any] | None:
             "answer": SUPPORTED_SCOPE_ANSWER,
             "tool_calls": [],
             "error": "unsupported_query",
+            "result_payload": None,
         }
 
     if _is_ambiguous_player_evaluation_query(text):
@@ -193,6 +195,7 @@ def _special_input_response(user_input: str) -> dict[str, Any] | None:
             "answer": AMBIGUOUS_EVALUATION_ANSWER,
             "tool_calls": [],
             "error": None,
+            "result_payload": None,
         }
 
     return None
@@ -258,6 +261,7 @@ def _direct_matchup_detail_response(user_input: str) -> dict[str, Any] | None:
         }
     ]
     answer = _format_tool_answer(tool_calls)
+    result_payload = _safe_build_result_payload(tool_calls)
 
     for call in tool_calls:
         call.pop("_data", None)
@@ -266,6 +270,7 @@ def _direct_matchup_detail_response(user_input: str) -> dict[str, Any] | None:
         "answer": answer,
         "tool_calls": tool_calls,
         "error": None,
+        "result_payload": result_payload,
     }
 
 
@@ -506,6 +511,253 @@ def _format_tool_answer(tool_calls: list[dict[str, Any]]) -> str:
     return "\n\n".join(sections)
 
 
+def _payload(
+    mode: str,
+    title: str,
+    summary: str,
+    source_calls: list[dict[str, Any]],
+    data: Any,
+) -> dict[str, Any]:
+    return {
+        "mode": mode,
+        "title": title,
+        "summary": summary,
+        "source_tools": [call["tool"] for call in source_calls],
+        "data": data,
+    }
+
+
+def _compact_dict(data: Any, fields: tuple[str, ...]) -> dict[str, Any] | None:
+    if not isinstance(data, dict):
+        return None
+
+    compacted = {
+        field: data[field]
+        for field in fields
+        if field in data and data[field] is not None
+    }
+    return compacted or None
+
+
+PLAYER_PAYLOAD_FIELDS = (
+    "player_name",
+    "team",
+    "goals",
+    "assists",
+    "appearances",
+    "total_minutes",
+    "avg_minutes",
+    "red_cards",
+    "yellow_cards",
+    "saves",
+    "save_rate",
+)
+
+MATCH_PAYLOAD_FIELDS = (
+    "match_id",
+    "match_date",
+    "match_time",
+    "stage",
+    "home_team",
+    "away_team",
+    "home_score",
+    "away_score",
+    "goals",
+)
+
+
+def _compact_player(data: Any) -> dict[str, Any] | None:
+    return _compact_dict(data, PLAYER_PAYLOAD_FIELDS)
+
+
+def _compact_players(players: Any) -> list[dict[str, Any]]:
+    if not isinstance(players, list):
+        return []
+
+    compacted_players = []
+    for player in players:
+        compacted = _compact_player(player)
+        if compacted:
+            compacted_players.append(compacted)
+    return compacted_players
+
+
+def _compact_match_detail(data: Any) -> dict[str, Any] | None:
+    return _compact_dict(data, MATCH_PAYLOAD_FIELDS)
+
+
+def _schedule_items(data: Any) -> list[dict[str, Any]]:
+    if not isinstance(data, list):
+        return []
+
+    return [match for match in data if isinstance(match, dict)]
+
+
+def _single_tool_payload(call: dict[str, Any]) -> dict[str, Any] | None:
+    tool = call["tool"]
+    data = call.get("_data")
+
+    if tool == "query_schedule":
+        matches = _schedule_items(data)
+        if not matches:
+            return None
+        return _payload(
+            "schedule",
+            "赛程查询结果",
+            f"共 {len(matches)} 场比赛，数据来自当前数据库。",
+            [call],
+            matches,
+        )
+
+    if tool == "query_player_stats":
+        player = _compact_player(data)
+        if not player:
+            return None
+        return _payload(
+            "player",
+            f"{player.get('player_name', '球员')}数据统计",
+            "球员数据来自当前数据库。",
+            [call],
+            player,
+        )
+
+    if tool == "query_players":
+        players = _compact_players(data.get("players") if isinstance(data, dict) else None)
+        if not players:
+            return None
+
+        sort_labels = {
+            "goals": "进球",
+            "assists": "助攻",
+            "appearances": "出场次数",
+        }
+        sort_by = data.get("sort_by") if isinstance(data, dict) else None
+        sort_label = sort_labels.get(sort_by, sort_by or "统计字段")
+        return _payload(
+            "player_ranking",
+            "球员排行查询结果",
+            f"按{sort_label}排序，数据来自当前数据库。",
+            [call],
+            players,
+        )
+
+    if tool == "query_top_scorer_by_team":
+        player = None
+        team = None
+        if isinstance(data, dict):
+            player = _compact_player(data.get("top_scorer"))
+            team = data.get("team") or (player or {}).get("team")
+        if not player:
+            return None
+        return _payload(
+            "player",
+            f"{team or player.get('team', '')}队内最佳射手".strip(),
+            "队内最佳射手数据来自当前数据库。",
+            [call],
+            player,
+        )
+
+    if tool == "query_best_goalkeeper":
+        goalkeeper = None
+        if isinstance(data, dict):
+            goalkeeper = _compact_player(data.get("best_goalkeeper"))
+        if not goalkeeper:
+            return None
+        return _payload(
+            "goalkeeper",
+            "门将扑救查询结果",
+            "扑救次数最多的门将数据来自当前数据库。",
+            [call],
+            goalkeeper,
+        )
+
+    if tool == "query_top10_scorers":
+        players = []
+        if isinstance(data, dict):
+            players = _compact_players(data.get("top10_scorers"))
+        if not players:
+            return None
+        return _payload(
+            "player_ranking",
+            "射手榜前十",
+            "按进球数降序排列，数据来自当前数据库。",
+            [call],
+            players,
+        )
+
+    if tool == "query_match_detail":
+        match_detail = _compact_match_detail(data)
+        if not match_detail:
+            return None
+
+        home_team = match_detail.get("home_team", "主队")
+        away_team = match_detail.get("away_team", "客队")
+        return _payload(
+            "match_detail",
+            f"{home_team} vs {away_team} 比赛详情",
+            "比赛详情和进球记录来自当前数据库。",
+            [call],
+            match_detail,
+        )
+
+    return None
+
+
+def _build_result_payload(tool_calls: list[dict[str, Any]]) -> dict[str, Any] | None:
+    successful_calls = [
+        call
+        for call in tool_calls
+        if call.get("status") == "success" and call.get("_data") is not None
+    ]
+
+    if not successful_calls:
+        return None
+
+    if len(successful_calls) == 1:
+        return _single_tool_payload(successful_calls[0])
+
+    tool_names = {call["tool"] for call in successful_calls}
+
+    if tool_names == {"query_schedule"}:
+        matches = []
+        for call in successful_calls:
+            matches.extend(_schedule_items(call.get("_data")))
+        if not matches:
+            return None
+        return _payload(
+            "schedule",
+            "赛程查询结果",
+            f"共 {len(matches)} 场比赛，数据来自当前数据库。",
+            successful_calls,
+            matches,
+        )
+
+    if tool_names == {"query_player_stats"}:
+        players = []
+        for call in successful_calls:
+            player = _compact_player(call.get("_data"))
+            if player:
+                players.append(player)
+        if not players:
+            return None
+        return _payload(
+            "player_comparison",
+            "球员数据对比",
+            f"共 {len(players)} 名球员，数据来自当前数据库。",
+            successful_calls,
+            players,
+        )
+
+    return None
+
+
+def _safe_build_result_payload(tool_calls: list[dict[str, Any]]) -> dict[str, Any] | None:
+    try:
+        return _build_result_payload(tool_calls)
+    except Exception:
+        return None
+
+
 def _contains_unsupported_inference(answer: str) -> bool:
     return any(keyword in answer for keyword in UNSUPPORTED_INFERENCE_KEYWORDS)
 
@@ -555,6 +807,7 @@ def chat_with_agent(
             "answer": "请输入你的问题。",
             "tool_calls": [],
             "error": "user_input 不能为空",
+            "result_payload": None,
         }
 
     special_response = _special_input_response(user_input)
@@ -575,6 +828,7 @@ def chat_with_agent(
             "answer": "当前无法完成请求，请稍后重试。",
             "tool_calls": [],
             "error": str(error),
+            "result_payload": None,
         }
 
     answer = ""
@@ -607,6 +861,8 @@ def chat_with_agent(
     if tool_calls and _should_use_formatter(user_input, answer, tool_calls):
         answer = _format_tool_answer(tool_calls)
 
+    result_payload = _safe_build_result_payload(tool_calls)
+
     for call in tool_calls:
         call.pop("_data", None)
 
@@ -614,6 +870,7 @@ def chat_with_agent(
         "answer": answer,
         "tool_calls": tool_calls,
         "error": None,
+        "result_payload": result_payload,
     }
 
 

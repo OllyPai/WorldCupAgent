@@ -61,7 +61,7 @@ def _to_frontend_response(result: dict[str, Any]) -> ChatResponse:
         answer=result.get("answer", ""),
         tool_calls=tool_calls,
         error=result.get("error"),
-        result_payload=None,
+        result_payload=result.get("result_payload"),
     )
 
 

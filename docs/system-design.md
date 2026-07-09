@@ -44,7 +44,7 @@
 - SQLite 数据库 `tools/worldcup.db`；
 - 多轮对话历史传入；
 - 前端对 `answer`、`tool_calls`、`error` 和 `result_payload` 的统一消费；
-- 前端在后端未返回 `result_payload` 时，基于工具摘要解析赛程、球员和比赛详情结构化结果；
+- 后端基于成功工具结果生成可选 `result_payload`，前端按 `mode` 展示或降级展示 `answer`；
 - 工具调用过程展示；
 - 空输入、低信息输入、超范围输入、工具失败等异常处理；
 - 后端自动化测试、工具层自测和前端构建验证。
@@ -165,7 +165,7 @@ flowchart TB
 | 门将扑救榜查询 | `QueryPage`、`ResultShowcase` | `chat_with_agent` | `query_best_goalkeeper`、`goalkeepers` |
 | 多轮比较 | `messages` 历史维护 | LangChain Agent、`_is_comparison_query` | `query_player_stats` 或 `query_players` |
 | 工具调用过程展示 | `TraceInspector` | `_to_frontend_response` | `tool_calls` |
-| 结构化结果展示 | `ResultShowcase` | `_to_frontend_response`，前端 `normalizeAgentResponse` | `result_payload` 或 `tool_calls[].summary` |
+| 结构化结果展示 | `ResultShowcase` | `chat_with_agent` 生成 `result_payload`，`_to_frontend_response` 透传 | `result_payload` |
 | 球队视觉展示 | `TeamIdentity`、`teamVisuals`、`flags/*.svg` | 无后端依赖 | 前端静态资源 |
 | 异常提示 | `Alert`、消息气泡 | `_special_input_response`、工具错误解析 | 工具统一错误结构 |
 
@@ -557,19 +557,16 @@ classDiagram
 | `tool_calls[].tool` | string | 工具名称 |
 | `tool_calls[].input` | object | 工具入参 |
 | `tool_calls[].status` | string | 前端状态，取值为 `success` 或 `failed` |
-| `tool_calls[].summary` | string | 工具结果摘要，成功时通常是 JSON 字符串 |
+| `tool_calls[].summary` | string | 工具结果摘要，前端 Trace 可按文本展示 |
 | `error` | string/null | 系统级错误；工具失败不一定导致该字段非空 |
-| `result_payload` | object/null | 结构化展示扩展字段，当前后端固定返回 `null`；前端可从成功工具摘要中解析部分结构化结果 |
+| `result_payload` | object/null | 可选结构化展示字段；有结构化结果时包含 `mode/title/summary/source_tools/data`，否则为 `null` |
 
-前端当前归一化规则：
+前端当前消费规则：
 
 1. 如果 `error` 不为空，前端展示错误提示，并清空结构化结果；
 2. 如果存在失败的 `tool_calls`，前端将失败工具转换为用户可读失败文案；
-3. 如果 `result_payload` 为空且最后一个成功工具的 `summary` 是 JSON，前端会尝试解析：
-   - `query_schedule` -> `schedule` 结构化赛程；
-   - `query_player_stats` -> `player` 结构化球员数据；
-   - `query_match_detail` -> `match_detail` 结构化比赛详情；
-4. 其他工具结果暂时以 `answer` 文本为主，同时保留 Trace 展示。
+3. 如果 `result_payload` 存在且 `mode` 已支持，前端展示对应结构化卡片或表格；
+4. 如果 `result_payload` 为空或 `mode` 暂不支持，前端降级展示 `answer` 文本，同时保留 Trace 展示。
 
 ### 7.2 内部工具接口
 
@@ -828,7 +825,7 @@ flowchart TB
 3. 前端调用 `sendChatMessage(userInput, history)`；
 4. 后端返回 `answer`、`tool_calls`、`error`、`result_payload`；
 5. 前端通过 `normalizeAgentResponse` 统一响应结构；
-6. 如果后端未返回 `result_payload`，前端尝试从成功工具的 JSON `summary` 解析赛程、球员或比赛详情；
+6. 如果 `result_payload` 存在且 `mode` 已支持，前端展示结构化结果；否则降级展示 `answer`；
 7. 前端将用户消息和助手消息追加到对话区；
 8. `ResultShowcase` 展示结构化结果或文本回答；
 9. `TraceInspector` 展示工具调用过程。
@@ -928,7 +925,7 @@ flowchart TB
 | 对阵详情无记录 | 返回比赛详情查询失败 |
 | 球员简称与数据库全名不一致 | 通过 `player_aliases.py` 生成候选名再查询 |
 | 球员统计表缺失但进球事件存在 | 聚合 `match_details` 中该球员进球记录作为兜底 |
-| 后端未返回 `result_payload` | 前端尝试解析成功工具 `summary`，无法解析则展示 `answer` 文本 |
+| `result_payload` 为空或 mode 暂不支持 | 前端降级展示 `answer` 文本 |
 | 单个工具失败 | 记录失败工具并展示错误原因 |
 | 多工具部分失败 | 展示失败原因，同时保留成功结果 |
 | 模型服务异常 | 返回“当前无法完成请求，请稍后重试” |
@@ -970,7 +967,7 @@ flowchart TB
 - 增加积分榜、球队排名和小组出线规则；
 - 扩展球员位置、门将零封、失球、预期进球等字段；
 - 增加用户登录和长期历史保存；
-- 后端直接返回 `result_payload`，由前端渲染更丰富的结构化卡片；
+- 前端继续扩展 `result_payload.mode` 对应的结构化卡片和表格；
 - 增加部署配置和线上访问地址；
 - 补充更完整的端到端浏览器测试。
 

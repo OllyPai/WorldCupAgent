@@ -14,6 +14,33 @@ from tools import (
 )
 
 
+def fake_tool_agent(tool_name, args, data, final_answer=""):
+    return FakeAgent(
+        messages=[
+            AIMessage(
+                content="",
+                tool_calls=[
+                    {
+                        "name": tool_name,
+                        "args": args,
+                        "id": "call-1",
+                        "type": "tool_call",
+                    }
+                ],
+            ),
+            ToolMessage(
+                content=json.dumps(
+                    {"success": True, "data": data, "error": None},
+                    ensure_ascii=False,
+                ),
+                tool_call_id="call-1",
+                name=tool_name,
+            ),
+            AIMessage(content=final_answer),
+        ]
+    )
+
+
 class FakeAgent:
     def __init__(self, messages=None, error=None):
         self.messages = messages or []
@@ -37,6 +64,7 @@ def test_direct_answer_keeps_history_and_returns_contract():
         "answer": "你好，我可以查询世界杯数据。",
         "tool_calls": [],
         "error": None,
+        "result_payload": None,
     }
     assert fake_agent.last_input["messages"] == [
         {"role": "user", "content": "你好"},
@@ -217,6 +245,137 @@ def test_multiple_tool_calls_are_converted_for_frontend():
         "success",
         "success",
     ]
+    assert result["result_payload"] is None
+
+
+def test_result_payload_supports_all_registered_tool_shapes():
+    cases = [
+        (
+            "query_schedule",
+            {"team": "巴西"},
+            [
+                {
+                    "match_date": "2026-06-14",
+                    "match_time": "06:00",
+                    "stage": "小组赛C组",
+                    "home_team": "巴西",
+                    "away_team": "摩洛哥",
+                    "home_score": 1,
+                    "away_score": 1,
+                }
+            ],
+            "schedule",
+            "巴西",
+        ),
+        (
+            "query_player_stats",
+            {"player_name": "梅西"},
+            {
+                "player_name": "梅西",
+                "team": "阿根廷",
+                "goals": 8,
+                "assists": 3,
+                "appearances": 5,
+            },
+            "player",
+            "梅西",
+        ),
+        (
+            "query_players",
+            {"sort_by": "goals", "limit": 2},
+            {
+                "players": [
+                    {
+                        "player_name": "梅西",
+                        "team": "阿根廷",
+                        "goals": 8,
+                        "assists": 3,
+                        "appearances": 5,
+                    }
+                ],
+                "sort_by": "goals",
+            },
+            "player_ranking",
+            "梅西",
+        ),
+        (
+            "query_match_detail",
+            {"home_team": "阿根廷", "away_team": "佛得角"},
+            {
+                "match_id": 87,
+                "match_date": "2026-07-04",
+                "match_time": "06:00",
+                "stage": "1/16决赛",
+                "home_team": "阿根廷",
+                "away_team": "佛得角",
+                "home_score": 3,
+                "away_score": 2,
+                "goals": [],
+            },
+            "match_detail",
+            "阿根廷",
+        ),
+        (
+            "query_top_scorer_by_team",
+            {"team": "阿根廷"},
+            {
+                "team": "阿根廷",
+                "top_scorer": {
+                    "player_name": "梅西",
+                    "team": "阿根廷",
+                    "goals": 8,
+                    "assists": 3,
+                    "appearances": 5,
+                },
+            },
+            "player",
+            "梅西",
+        ),
+        (
+            "query_best_goalkeeper",
+            {},
+            {
+                "best_goalkeeper": {
+                    "player_name": "门将A",
+                    "team": "阿根廷",
+                    "saves": 12,
+                    "save_rate": "80%",
+                }
+            },
+            "goalkeeper",
+            "门将A",
+        ),
+        (
+            "query_top10_scorers",
+            {},
+            {
+                "top10_scorers": [
+                    {
+                        "player_name": "梅西",
+                        "team": "阿根廷",
+                        "goals": 8,
+                        "assists": 3,
+                        "appearances": 5,
+                    }
+                ]
+            },
+            "player_ranking",
+            "梅西",
+        ),
+    ]
+
+    for tool_name, args, data, expected_mode, expected_text in cases:
+        result = chat_with_agent(
+            f"测试 {tool_name}",
+            agent=fake_tool_agent(tool_name, args, data),
+        )
+
+        payload = result["result_payload"]
+        assert payload["mode"] == expected_mode
+        assert payload["source_tools"] == [tool_name]
+        assert payload["title"]
+        assert payload["summary"]
+        assert expected_text in json.dumps(payload["data"], ensure_ascii=False)
 
 
 def test_agent_error_is_returned_instead_of_raised():
@@ -380,6 +539,126 @@ def test_unsupported_inference_falls_back_to_tool_formatting():
     assert "出线" not in result["answer"]
     assert "止步" not in result["answer"]
     assert "惜败" not in result["answer"]
+    assert result["result_payload"]["mode"] == "schedule"
+    assert result["result_payload"]["source_tools"] == ["query_schedule"]
+    assert result["result_payload"]["data"] == cape_verde_result["data"]
+
+
+def test_multiple_player_stats_build_player_comparison_payload():
+    messi_result = {
+        "success": True,
+        "data": {
+            "player_name": "梅西",
+            "team": "阿根廷",
+            "goals": 8,
+            "assists": 3,
+            "appearances": 5,
+        },
+        "error": None,
+    }
+    mbappe_result = {
+        "success": True,
+        "data": {
+            "player_name": "姆巴佩",
+            "team": "法国",
+            "goals": 7,
+            "assists": 2,
+            "appearances": 5,
+        },
+        "error": None,
+    }
+    fake_agent = FakeAgent(
+        messages=[
+            AIMessage(
+                content="",
+                tool_calls=[
+                    {
+                        "name": "query_player_stats",
+                        "args": {"player_name": "梅西"},
+                        "id": "call-1",
+                        "type": "tool_call",
+                    },
+                    {
+                        "name": "query_player_stats",
+                        "args": {"player_name": "姆巴佩"},
+                        "id": "call-2",
+                        "type": "tool_call",
+                    },
+                ],
+            ),
+            ToolMessage(
+                content=json.dumps(messi_result, ensure_ascii=False),
+                tool_call_id="call-1",
+                name="query_player_stats",
+            ),
+            ToolMessage(
+                content=json.dumps(mbappe_result, ensure_ascii=False),
+                tool_call_id="call-2",
+                name="query_player_stats",
+            ),
+            AIMessage(content="梅西和姆巴佩的数据对比。"),
+        ]
+    )
+
+    result = chat_with_agent("比较梅西和姆巴佩", agent=fake_agent)
+
+    assert result["result_payload"] == {
+        "mode": "player_comparison",
+        "title": "球员数据对比",
+        "summary": "共 2 名球员，数据来自当前数据库。",
+        "source_tools": ["query_player_stats", "query_player_stats"],
+        "data": [
+            {
+                "player_name": "梅西",
+                "team": "阿根廷",
+                "goals": 8,
+                "assists": 3,
+                "appearances": 5,
+            },
+            {
+                "player_name": "姆巴佩",
+                "team": "法国",
+                "goals": 7,
+                "assists": 2,
+                "appearances": 5,
+            },
+        ],
+    }
+
+
+def test_all_failed_tool_calls_keep_result_payload_null():
+    fake_agent = FakeAgent(
+        messages=[
+            AIMessage(
+                content="",
+                tool_calls=[
+                    {
+                        "name": "query_match_detail",
+                        "args": {"home_team": "中国", "away_team": "佛得角"},
+                        "id": "call-1",
+                        "type": "tool_call",
+                    }
+                ],
+            ),
+            ToolMessage(
+                content=json.dumps(
+                    {
+                        "success": False,
+                        "data": None,
+                        "error": "未找到对应比赛，请检查输入信息。",
+                    },
+                    ensure_ascii=False,
+                ),
+                tool_call_id="call-1",
+                name="query_match_detail",
+            ),
+        ]
+    )
+
+    result = chat_with_agent("中国和佛得角的比赛详情", agent=fake_agent)
+
+    assert result["answer"].startswith("比赛详情查询失败")
+    assert result["result_payload"] is None
 
 
 def test_matchup_detail_request_bypasses_agent_and_uses_match_detail_tool():
@@ -396,6 +675,7 @@ def test_matchup_detail_request_bypasses_agent_and_uses_match_detail_tool():
             "summary": "未找到对应比赛，请检查输入信息。",
         }
     ]
+    assert result["result_payload"] is None
     assert fake_agent.last_input is None
 
 
@@ -408,6 +688,10 @@ def test_matchup_detail_tool_supports_reverse_team_order():
     assert "阿根廷 3:2 佛得角" in result["answer"]
     assert result["tool_calls"][0]["tool"] == "query_match_detail"
     assert result["tool_calls"][0]["status"] == "success"
+    assert result["result_payload"]["mode"] == "match_detail"
+    assert result["result_payload"]["source_tools"] == ["query_match_detail"]
+    assert result["result_payload"]["data"]["home_team"] == "阿根廷"
+    assert result["result_payload"]["data"]["away_team"] == "佛得角"
     assert fake_agent.last_input is None
 
 
