@@ -20,7 +20,10 @@ function HotMatchCard({ match }) {
 
       <div className="hot-card-bottom">
         <Tag color="green">{match.status}</Tag>
-        <span>{match.matchTime}</span>
+        <span>
+          {match.matchDate ? `${match.matchDate} ` : ""}
+          {match.matchTime}
+        </span>
       </div>
     </Card>
   );

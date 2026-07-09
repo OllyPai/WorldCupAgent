@@ -36,7 +36,7 @@ function HomePage() {
           <div className="section-title-row">
             <div className="section-headline">
               <span className="section-kicker">赛程查询</span>
-              <h2>今日赛程与比赛状态</h2>
+              <h2>近日赛程与比赛状态</h2>
               {/* <p>用户可以先看当天对阵、时间、阶段和比分，再决定要不要进一步查询。</p> */}
             </div>
             <div className="section-tag">日期 · 时间 · 对阵 · 阶段</div>
