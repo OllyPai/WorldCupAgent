@@ -160,6 +160,27 @@
   line-height: 1.75;
 }
 
+.chat-answer-richtext {
+  display: grid;
+  gap: 12px;
+}
+
+.chat-answer-paragraph {
+  white-space: pre-wrap;
+}
+
+.chat-answer-list {
+  margin: 0;
+  padding-left: 1.2em;
+  color: var(--text-body);
+  display: grid;
+  gap: 8px;
+}
+
+.chat-answer-list li {
+  line-height: 1.75;
+}
+
 .chat-note {
   padding-left: 8px;
   font-size: 13px;
