@@ -830,3 +830,18 @@ def test_real_business_tools_return_rankings():
     assert best_goalkeeper["data"]["best_goalkeeper"]["saves"] >= 1
     assert top10["success"] is True
     assert len(top10["data"]["top10_scorers"]) == 10
+
+
+def test_recent_quarterfinal_goal_events_align_with_player_stats():
+    detail = query_match_detail.invoke({"home_team": "西班牙", "away_team": "比利时"})
+
+    assert detail["success"] is True
+    goals = detail["data"]["goals"]
+    assert len(goals) == 3
+    scorer_names = {goal["player_name"] for goal in goals}
+    assert {"法维安·鲁伊斯", "夏尔·德凯特拉雷", "米克尔·梅里诺"} <= scorer_names
+
+    for player_name in scorer_names:
+        stats = query_player_stats.invoke({"player_name": player_name})
+        assert stats["success"] is True
+        assert stats["data"]["goals"] >= 1
