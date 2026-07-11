@@ -9,8 +9,8 @@
 - 后端基础地址：`http://localhost:8000`
 - 健康检查：`GET /api/health`
 - 聊天接口：`POST /api/chat`
-- 前端只需要先消费：`answer`、`tool_calls`、`error`
-- `result_payload` 当前固定为 `null`，不要依赖它做核心展示
+- 前端必须稳定消费：`answer`、`tool_calls`、`error`
+- `result_payload` 是可选结构化展示字段；存在时按 `mode` 展示，不存在或未知 `mode` 时降级展示 `answer`
 - 数据来自本地 SQLite 课程演示数据库，不是官方实时数据
 
 ## 2. 后端启动方式
@@ -107,7 +107,17 @@ Content-Type: application/json
     }
   ],
   "error": null,
-  "result_payload": null
+  "result_payload": {
+    "mode": "player",
+    "title": "梅西数据统计",
+    "summary": "球员数据来自当前数据库。",
+    "source_tools": ["query_player_stats"],
+    "data": {
+      "player_name": "梅西",
+      "team": "阿根廷",
+      "goals": 13
+    }
+  }
 }
 ```
 
@@ -122,7 +132,20 @@ Content-Type: application/json
 | `tool_calls[].status` | `"success"` 或 `"failed"` | 工具调用状态 |
 | `tool_calls[].summary` | string | 工具结果摘要，前端按文本展示即可 |
 | `error` | string 或 null | 不为空时展示错误提示 |
-| `result_payload` | object 或 null | 当前固定为 null，先不要依赖 |
+| `result_payload` | object 或 null | 结构化展示数据；没有合适结构时为 null |
+
+`result_payload` 是已有接口字段的向后兼容补全。前端不能假设它一定存在，也不能因为它为 `null` 或未知 `mode` 而阻塞 `answer` 展示。
+
+当前支持的 `mode`：
+
+| mode | 前端建议展示 |
+|---|---|
+| `schedule` | 赛程列表 |
+| `player` | 单球员卡片 |
+| `player_ranking` | 球员排行表 |
+| `player_comparison` | 多球员对比表 |
+| `goalkeeper` | 门将数据卡片 |
+| `match_detail` | 比赛详情卡 |
 
 ## 5. 前端最小实现方案
 
@@ -136,7 +159,7 @@ Content-Type: application/json
 4. 把后端返回的 `answer` 追加为 assistant 消息。
 5. 把后端返回的 `tool_calls` 交给 Trace 面板。
 6. 如果 `error !== null`，展示错误提示。
-7. `result_payload === null` 时，结构化结果区隐藏或降级展示 `answer`。
+7. 如果 `result_payload` 有前端已支持的 `mode`，展示结构化卡片或表格；否则降级展示 `answer`。
 
 ## 6. 推荐 fetch 封装
 
@@ -262,8 +285,8 @@ curl -X POST http://localhost:8000/api/chat \
 
 1. 不要修改后端接口契约。
 2. 不要让前端直接 import Python 文件。
-3. 不要把 `result_payload` 当成必有字段。
-4. 不要把 `tool_calls[].summary` 当成必须可解析 JSON 的字段；它可以按文本展示。
+3. 不要把 `result_payload` 当成必有字段；它仍然可能是 `null`。
+4. 不要把 `tool_calls[].summary` 当成结构化数据源；结构化展示优先使用 `result_payload`。
 5. 不要把思维链、Prompt、密钥、内部日志展示给用户。
 6. 不要新增后端字段来“猜测”功能，除非先和后端对齐。
 7. 前端历史只传 `{role, content}`。
@@ -308,9 +331,13 @@ curl http://localhost:8000/api/health
 
 ### 10.5 前端想做表格或卡片
 
-当前阶段先不要依赖 `result_payload`。可以先把 `answer` 作为主要展示，把 `tool_calls` 放到 Trace 面板。
+优先读取 `result_payload`：
 
-后续如果需要结构化卡片，再单独约定 `result_payload` 的格式。
+- `result_payload.mode` 决定展示组件；
+- `result_payload.data` 是结构化数据；
+- `result_payload.source_tools` 表明数据来自哪些工具。
+
+如果 `result_payload === null` 或前端暂未支持某个 `mode`，降级展示 `answer`。
 
 ## 11. 联调验收清单
 
@@ -318,8 +345,11 @@ curl http://localhost:8000/api/health
 
 - [ ] 打开页面后，能正常输入问题并发送。
 - [ ] 查询“请查询梅西的世界杯进球数据”，页面展示 `answer`。
+- [ ] 如果返回 `result_payload.mode === "player"`，页面能展示或降级展示球员数据。
 - [ ] Trace 面板能展示 `query_player_stats`。
 - [ ] 查询“请查询巴西队赛程”，页面展示赛程回答。
+- [ ] 查询“谁是进球最多的球员”，页面能处理 `player_ranking`。
+- [ ] 查询“谁是扑救最多的门将”，页面能处理 `goalkeeper`。
 - [ ] 查询“请查询阿根廷和佛得角的比赛详情”，页面展示比赛详情回答。
 - [ ] 空输入能展示错误提示，不崩溃。
 - [ ] 后端没启动时，前端能展示网络错误。
@@ -334,4 +364,5 @@ curl http://localhost:8000/api/health
 3. 能展示 `answer`。
 4. 能展示 `tool_calls`。
 5. 能展示 `error`。
-6. 浏览器端完成至少三类问题的演示：球员数据、赛程、比赛详情。
+6. 能在 `result_payload` 存在时展示结构化结果，或对暂不支持的 `mode` 降级展示 `answer`。
+7. 浏览器端完成至少三类问题的演示：球员数据、赛程、比赛详情。

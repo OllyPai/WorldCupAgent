@@ -19,7 +19,14 @@ def query_match_detail(home_team: str = None, away_team: str = None, match_id: i
         if match_id:
             cursor.execute("SELECT * FROM matches WHERE match_id = ?", (match_id,))
         elif home_team and away_team:
-            cursor.execute("SELECT * FROM matches WHERE home_team = ? AND away_team = ?", (home_team, away_team))
+            cursor.execute(
+                """
+                SELECT * FROM matches
+                WHERE (home_team = ? AND away_team = ?)
+                   OR (home_team = ? AND away_team = ?)
+                """,
+                (home_team, away_team, away_team, home_team),
+            )
         else:
             conn.close()
             return {

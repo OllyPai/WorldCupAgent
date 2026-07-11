@@ -29,6 +29,13 @@ def test_chat_endpoint_returns_frontend_contract(monkeypatch):
                 }
             ],
             "error": None,
+            "result_payload": {
+                "mode": "player",
+                "title": "梅西数据统计",
+                "summary": "球员数据来自当前数据库。",
+                "source_tools": ["query_player_stats"],
+                "data": {"player_name": "梅西", "team": "阿根廷", "goals": 8},
+            },
         }
 
     monkeypatch.setattr(api_module, "chat_with_agent", fake_chat_with_agent)
@@ -54,7 +61,13 @@ def test_chat_endpoint_returns_frontend_contract(monkeypatch):
             }
         ],
         "error": None,
-        "result_payload": None,
+        "result_payload": {
+            "mode": "player",
+            "title": "梅西数据统计",
+            "summary": "球员数据来自当前数据库。",
+            "source_tools": ["query_player_stats"],
+            "data": {"player_name": "梅西", "team": "阿根廷", "goals": 8},
+        },
     }
     assert captured == {
         "user_input": "请查询梅西的世界杯进球数据",

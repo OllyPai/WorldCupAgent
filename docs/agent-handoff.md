@@ -24,13 +24,13 @@ curl http://localhost:8000/api/health
 
 3. React 页面发送 `POST http://localhost:8000/api/chat`，不要直接调用 Python 文件。
 
-4. 前端只需要先消费三个字段：
+4. 前端必须稳定消费三个核心字段：
 
 - `answer`：聊天气泡展示；
 - `tool_calls`：Trace/工具调用过程展示；
 - `error`：不为空时展示错误提示。
 
-`result_payload` 当前固定为 `null`，前端结构化卡片可以先隐藏或降级展示 `answer`。
+`result_payload` 是可选结构化展示字段。存在时前端可以按 `mode` 渲染卡片或表格；为 `null` 或未知 `mode` 时降级展示 `answer`。
 
 ## 1. Python 内部入口
 
@@ -87,13 +87,17 @@ Agent 返回固定结构：
 
 ## 3. 当前已注册工具
 
-Agent 当前注册三个工具：
+Agent 当前注册七个工具：
 
 | 工具名 | 用途 | 典型参数 |
 |---|---|---|
 | `query_schedule` | 查询赛程 | `{"team": "巴西"}`、`{"date": "2026-06-14"}`、`{"stage": "1/8决赛"}` |
 | `query_player_stats` | 查询球员数据 | `{"player_name": "梅西"}` |
+| `query_players` | 查询球员列表或排行 | `{"team": "阿根廷", "sort_by": "goals", "limit": 10}` |
 | `query_match_detail` | 查询比赛详情 | `{"home_team": "阿根廷", "away_team": "佛得角"}` 或 `{"match_id": 87}` |
+| `query_top_scorer_by_team` | 查询某队进球最多的球员 | `{"team": "阿根廷"}` |
+| `query_best_goalkeeper` | 查询扑救最多的门将 | `{}` |
+| `query_top10_scorers` | 查询射手榜前十 | `{}` |
 
 工具统一返回：
 
@@ -147,7 +151,13 @@ POST /api/chat
     }
   ],
   "error": null,
-  "result_payload": null
+  "result_payload": {
+    "mode": "player",
+    "title": "梅西数据统计",
+    "summary": "球员数据来自当前数据库。",
+    "source_tools": ["query_player_stats"],
+    "data": {"player_name": "梅西", "team": "阿根廷", "goals": 8}
+  }
 }
 ```
 
@@ -155,7 +165,7 @@ POST /api/chat
 
 - Agent 内部使用 `success/error`；
 - HTTP API 返回给前端时映射为 `success/failed`，对齐前端文档；
-- `result_payload` 当前固定为 `null`，后续需要结构化卡片时再补。
+- `result_payload` 由 Agent 根据成功工具结果生成，生成失败或无合适结构时为 `null`。
 
 React `fetch` 示例：
 
@@ -242,4 +252,4 @@ curl -X POST http://localhost:8000/api/chat \
 - 对话区展示 `answer`；
 - Trace 面板展示 `tool_calls`；
 - 如果 `error != null`，展示错误提示；
-- 当前没有 `result_payload` 时，结构化结果区可以先隐藏或降级展示 `answer`。
+- 有 `result_payload` 时按 `mode` 展示结构化结果；没有或暂不支持时降级展示 `answer`。

@@ -37,7 +37,7 @@ function HeroBanner({
             icon={<PlayCircleOutlined />}
             onClick={onSecondaryAction}
           >
-            查看今日比赛
+            查看近日比赛
           </Button>
         </Space>
         <div className="hero-illustration-wrap">

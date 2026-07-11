@@ -6,6 +6,7 @@ import {
   SendOutlined,
   ThunderboltOutlined,
 } from "@ant-design/icons";
+import FormattedText from "./FormattedText";
 
 const { TextArea } = Input;
 
@@ -144,7 +145,7 @@ function AssistantMessageBody({ content }) {
   const blocks = formatAssistantContent(content);
 
   if (!blocks.length) {
-    return <p>{content}</p>;
+    return <FormattedText text={content} />;
   }
 
   return (
@@ -154,16 +155,20 @@ function AssistantMessageBody({ content }) {
           return (
             <ul key={`list-${index}`} className="chat-answer-list">
               {block.items.map((item, itemIndex) => (
-                <li key={`item-${itemIndex}`}>{item}</li>
+                <li key={`item-${itemIndex}`}>
+                  <FormattedText text={item} className="chat-answer-list-text" />
+                </li>
               ))}
             </ul>
           );
         }
 
         return (
-          <p key={`paragraph-${index}`} className="chat-answer-paragraph">
-            {block.content}
-          </p>
+          <FormattedText
+            key={`paragraph-${index}`}
+            text={block.content}
+            className="chat-answer-paragraph"
+          />
         );
       })}
     </div>
@@ -229,7 +234,7 @@ function ChatWorkspace({
                 {message.role === "assistant" ? (
                   <AssistantMessageBody content={message.content} />
                 ) : (
-                  <p>{message.content}</p>
+                  <FormattedText text={message.content} />
                 )}
               </div>
               {message.note ? <div className="chat-note">{message.note}</div> : null}
