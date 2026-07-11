@@ -60,52 +60,38 @@ const brazilScheduleData = [
   },
 ];
 
-const argentinaEgyptMatch = {
-  id: "match-95",
-  homeTeam: "阿根廷",
-  awayTeam: "埃及",
-  matchDate: "2026-07-08",
-  matchTime: "00:00",
+const spainBelgiumMatch = {
+  id: "match-98",
+  homeTeam: "西班牙",
+  awayTeam: "比利时",
+  matchDate: "2026-07-11",
+  matchTime: "03:00",
   status: "本地库记录",
-  homeScore: 3,
-  awayScore: 2,
-  stage: "1/8决赛",
+  homeScore: 2,
+  awayScore: 1,
+  stage: "1/4决赛",
 };
 
-const argentinaEgyptEvents = [
+const spainBelgiumEvents = [
   {
-    id: "event-95-01",
-    teamName: "埃及",
-    playerName: "亚西尔",
-    minute: "15'",
+    id: "event-98-01",
+    teamName: "西班牙",
+    playerName: "鲁伊斯",
+    minute: "30'",
     goalType: "进球",
   },
   {
-    id: "event-95-02",
-    teamName: "埃及",
-    playerName: "济科",
-    minute: "67'",
+    id: "event-98-02",
+    teamName: "比利时",
+    playerName: "德凯特拉雷",
+    minute: "41'",
     goalType: "进球",
   },
   {
-    id: "event-95-03",
-    teamName: "阿根廷",
-    playerName: "罗梅罗",
-    minute: "79'",
-    goalType: "进球",
-  },
-  {
-    id: "event-95-04",
-    teamName: "阿根廷",
-    playerName: "梅西",
-    minute: "83'",
-    goalType: "进球",
-  },
-  {
-    id: "event-95-05",
-    teamName: "阿根廷",
-    playerName: "恩佐",
-    minute: "92'",
+    id: "event-98-03",
+    teamName: "西班牙",
+    playerName: "梅里诺",
+    minute: "88'",
     goalType: "进球",
   },
 ];
@@ -199,38 +185,38 @@ const queryCases = [
   {
     id: "query-03",
     label: "比赛详情",
-    placeholder: "例如：请查询阿根廷和埃及的比赛详情",
+    placeholder: "例如：请查询西班牙和比利时的比赛详情",
     request: {
       user_input: quickQueries[2].queryText,
       history: [],
     },
     response: {
       answer:
-        "比赛详情查询结果（本地课程演示数据库）：阿根廷 3:2 埃及，并包含进球事件。",
+        "比赛详情查询结果（本地课程演示数据库）：西班牙 2:1 比利时，并包含进球事件。",
       tool_calls: [
         buildToolCall(
           "query_match_detail",
-          { home_team: "阿根廷", away_team: "埃及" },
+          { home_team: "西班牙", away_team: "比利时" },
           "success",
-          "返回 match_id=95 的比分和进球事件。"
+          "返回 match_id=98 的比分和进球事件。"
         ),
       ],
       error: null,
       result_payload: {
         mode: "match_detail",
-        title: "阿根廷 vs 埃及进球事件",
-        summary: "共 5 条进球事件，数据来自本地 SQLite 演示库。",
+        title: "西班牙 vs 比利时进球事件",
+        summary: "共 3 条进球事件，数据来自本地 SQLite 演示库。",
         source_tools: ["query_match_detail"],
         data: {
-          match_id: 95,
-          match_date: argentinaEgyptMatch.matchDate,
-          match_time: argentinaEgyptMatch.matchTime,
-          home_team: argentinaEgyptMatch.homeTeam,
-          away_team: argentinaEgyptMatch.awayTeam,
-          stage: argentinaEgyptMatch.stage,
-          home_score: argentinaEgyptMatch.homeScore,
-          away_score: argentinaEgyptMatch.awayScore,
-          goals: argentinaEgyptEvents.map((event) => ({
+          match_id: 98,
+          match_date: spainBelgiumMatch.matchDate,
+          match_time: spainBelgiumMatch.matchTime,
+          home_team: spainBelgiumMatch.homeTeam,
+          away_team: spainBelgiumMatch.awayTeam,
+          stage: spainBelgiumMatch.stage,
+          home_score: spainBelgiumMatch.homeScore,
+          away_score: spainBelgiumMatch.awayScore,
+          goals: spainBelgiumEvents.map((event) => ({
             player_name: event.playerName,
             team: event.teamName,
             goal_time: Number(event.minute.replace("'", "")),

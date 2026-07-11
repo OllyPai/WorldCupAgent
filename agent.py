@@ -306,7 +306,7 @@ def _format_schedule(data: Any) -> str:
             lines.append(f"- {match}")
             continue
 
-        score = f"{match.get('home_score')}:{match.get('away_score')}"
+        score = _format_score(match.get("home_score"), match.get("away_score"))
         lines.append(
             "- "
             f"{match.get('match_date')} {match.get('match_time')}，"
@@ -315,6 +315,12 @@ def _format_schedule(data: Any) -> str:
         )
 
     return "\n".join(lines)
+
+
+def _format_score(home_score: Any, away_score: Any) -> str:
+    if home_score is None or away_score is None:
+        return "未开赛/比分待定"
+    return f"{home_score}:{away_score}"
 
 
 def _format_player_stats(data: Any) -> str:
@@ -436,7 +442,7 @@ def _format_match_detail(data: Any) -> str:
     if not isinstance(data, dict):
         return f"比赛详情查询结果：{json.dumps(data, ensure_ascii=False)}"
 
-    score = f"{data.get('home_score')}:{data.get('away_score')}"
+    score = _format_score(data.get("home_score"), data.get("away_score"))
     lines = [
         "比赛详情查询结果（当前数据库）：",
         f"- 比赛ID：{data.get('match_id')}",

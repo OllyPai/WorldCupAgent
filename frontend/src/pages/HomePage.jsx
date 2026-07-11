@@ -15,7 +15,7 @@ import {
 function HomePage() {
   const navigate = useNavigate();
   const liveMatch = featuredMatches[0];
-  const liveGoals = goalEvents.filter((event) => event.matchId === "match-95");
+  const liveGoals = goalEvents.filter((event) => event.matchId === liveMatch.id);
 
   return (
     <div className="page-shell">

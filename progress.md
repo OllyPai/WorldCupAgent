@@ -7,6 +7,13 @@
 - **工作区：** API 适配层已合并到主分支；正在按负责人逐个修复 `docs/known-issues.md` 中的问题；仍存在未跟踪的 `docs/proposal-report.md`、`docs/team-action-plan.md`、`output/`、`tmp/`
 - **外部依赖变化：** 队友工具 PR #2、Agent 核心 PR #3 和 API 适配 PR #4 均已合并到 GitHub `main`。
 
+## 当前状态补充（2026-07-11）
+
+- **当前任务：** 更新 2026-07-10 至 2026-07-11 已结束的 1/4 决赛数据。
+- **数据范围：** 只更新已结束比赛；未开赛比赛比分改为 `NULL`，避免被误读为 `0:0`。
+- **已同步文件：** `tools/worldcup.db`、`tools/init_db.py`、`frontend/src/data/homeMock.js`、`frontend/src/data/queryExamples.js`、`frontend/src/pages/HomePage.jsx`、`agent.py`。
+- **外部来源：** Al Jazeera、Guardian、Times of India 对法国 2:0 摩洛哥和西班牙 2:1 比利时的赛果报道。
+
 ## 已完成记录
 
 ### 阶段 1：范围、分工与接口对齐
@@ -128,6 +135,11 @@
 | 2026-07-08 | `.venv/bin/python -m pytest tests/test_minimal_agent.py -q` | 12 passed | 通过 |
 | 2026-07-08 | `.venv/bin/python -m pytest -q` | 16 passed, 1 FastAPI TestClient 上游弃用警告 | 通过 |
 | 2026-07-08 | `.venv/bin/python -m py_compile agent.py backend/app.py tools/*.py test_tools.py` | 无输出 | 通过 |
+| 2026-07-11 | SQLite 数据校验 | 法国 2:0 摩洛哥、西班牙 2:1 比利时、法国 vs 西班牙半决赛、未开赛比分 `NULL` | 通过 |
+| 2026-07-11 | `.venv/bin/python -m pytest -q` | 30 passed, 1 FastAPI TestClient 上游弃用警告 | 通过 |
+| 2026-07-11 | `.venv/bin/python -m py_compile agent.py backend/app.py tools/*.py test_tools.py` | 无输出 | 通过 |
+| 2026-07-11 | `npm --prefix frontend run build` | Vite build 成功，仍有 chunk size 提示 | 通过 |
+| 2026-07-11 | 工具级业务验证 | `query_match_detail` 可查法国-摩洛哥、西班牙-比利时；`query_schedule` 不再把未开赛半决赛显示成 `0:0` | 通过 |
 
 ## 错误日志
 
