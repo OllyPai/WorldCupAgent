@@ -340,6 +340,27 @@
   margin-bottom: 18px;
 }
 
+.query-result-sections {
+  display: grid;
+  gap: 22px;
+}
+
+.query-result-section {
+  display: grid;
+  gap: 14px;
+}
+
+.query-result-section + .query-result-section {
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.query-result-section-head h4 {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 18px;
+}
+
 .query-answer-fallback-box {
   padding: 18px;
   border-radius: 12px;

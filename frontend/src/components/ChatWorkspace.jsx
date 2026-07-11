@@ -29,6 +29,50 @@ function formatAssistantContent(content = "") {
     return [];
   }
 
+  const sectionMarkers = [
+    "赛程查询结果",
+    "球员数据查询结果",
+    "比赛详情查询结果",
+  ];
+
+  const markerPattern = new RegExp(`(${sectionMarkers.join("|")})`, "g");
+  const markerMatches = [...cleaned.matchAll(markerPattern)];
+
+  if (markerMatches.length > 1) {
+    const blocks = [];
+
+    markerMatches.forEach((match, index) => {
+      const start = match.index;
+      const end =
+        index + 1 < markerMatches.length
+          ? markerMatches[index + 1].index
+          : cleaned.length;
+      const segment = cleaned.slice(start, end).trim();
+
+      if (!segment) {
+        return;
+      }
+
+      const splitIndex = segment.indexOf("：");
+
+      if (splitIndex === -1) {
+        blocks.push({ type: "paragraph", content: segment });
+        return;
+      }
+
+      const title = segment.slice(0, splitIndex + 1).trim();
+      const body = segment.slice(splitIndex + 1).trim();
+
+      blocks.push({ type: "paragraph", content: title });
+
+      if (body) {
+        blocks.push(...formatAssistantContent(body));
+      }
+    });
+
+    return blocks;
+  }
+
   const matchListPattern = /\s-\s\d{4}-\d{2}-\d{2}/;
 
   if (matchListPattern.test(cleaned)) {
@@ -54,6 +98,25 @@ function formatAssistantContent(content = "") {
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean);
+
+  if (
+    lines.length === 1 &&
+    /-\s*球员：|-\s*球队：|-\s*进球：|-\s*助攻：|-\s*出场次数：/.test(cleaned)
+  ) {
+    const [titlePart, ...items] = cleaned.split(/\s*-\s*(?=球员：|球队：|进球：|助攻：|出场次数：)/);
+
+    return [
+      titlePart.trim()
+        ? { type: "paragraph", content: titlePart.trim() }
+        : null,
+      items.length
+        ? {
+            type: "list",
+            items: items.map((item) => item.trim()).filter(Boolean),
+          }
+        : null,
+    ].filter(Boolean);
+  }
 
   if (lines.some((line) => line.startsWith("- "))) {
     const paragraphLines = [];
