@@ -161,6 +161,7 @@
 }
 
 .formatted-text {
+  margin: 0;
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -168,6 +169,31 @@
 .formatted-text strong {
   color: var(--text-main);
   font-weight: 800;
+}
+
+.chat-answer-richtext {
+  display: grid;
+  gap: 12px;
+}
+
+.chat-answer-paragraph {
+  white-space: pre-wrap;
+}
+
+.chat-answer-list {
+  margin: 0;
+  padding-left: 1.2em;
+  color: var(--text-body);
+  display: grid;
+  gap: 8px;
+}
+
+.chat-answer-list li {
+  line-height: 1.75;
+}
+
+.chat-answer-list-text {
+  display: inline;
 }
 
 .chat-note {

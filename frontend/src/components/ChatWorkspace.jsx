@@ -10,6 +10,108 @@ import FormattedText from "./FormattedText";
 
 const { TextArea } = Input;
 
+function cleanAssistantText(content = "") {
+  return content
+    .replaceAll("（本地课程演示数据库）", "")
+    .replaceAll("(本地课程演示数据库)", "")
+    .replace(/\s+：/g, "：")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line && !/^[-•]?\s*比赛ID[:：]/.test(line))
+    .join("\n")
+    .trim();
+}
+
+function formatAssistantContent(content = "") {
+  const cleaned = cleanAssistantText(content);
+
+  if (!cleaned) {
+    return [];
+  }
+
+  const matchListPattern = /\s-\s\d{4}-\d{2}-\d{2}/;
+
+  if (matchListPattern.test(cleaned)) {
+    const [titlePart, ...items] = cleaned.split(/\s-\s(?=\d{4}-\d{2}-\d{2})/);
+
+    return [
+      {
+        type: "paragraph",
+        content: titlePart.trim(),
+      },
+      {
+        type: "list",
+        items: items.map((item) => item.trim()).filter(Boolean),
+      },
+    ].filter((block) =>
+      block.type === "paragraph"
+        ? block.content
+        : Array.isArray(block.items) && block.items.length > 0
+    );
+  }
+
+  const lines = cleaned
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (lines.some((line) => line.startsWith("- "))) {
+    const paragraphLines = [];
+    const listItems = [];
+
+    lines.forEach((line) => {
+      if (line.startsWith("- ")) {
+        listItems.push(line.replace(/^- /, "").trim());
+      } else {
+        paragraphLines.push(line);
+      }
+    });
+
+    return [
+      paragraphLines.length
+        ? { type: "paragraph", content: paragraphLines.join("\n") }
+        : null,
+      listItems.length ? { type: "list", items: listItems } : null,
+    ].filter(Boolean);
+  }
+
+  return [{ type: "paragraph", content: cleaned }];
+}
+
+function AssistantMessageBody({ content }) {
+  const blocks = formatAssistantContent(content);
+
+  if (!blocks.length) {
+    return <FormattedText text={content} />;
+  }
+
+  return (
+    <div className="chat-answer-richtext">
+      {blocks.map((block, index) => {
+        if (block.type === "list") {
+          return (
+            <ul key={`list-${index}`} className="chat-answer-list">
+              {block.items.map((item, itemIndex) => (
+                <li key={`item-${itemIndex}`}>
+                  <FormattedText text={item} className="chat-answer-list-text" />
+                </li>
+              ))}
+            </ul>
+          );
+        }
+
+        return (
+          <FormattedText
+            key={`paragraph-${index}`}
+            text={block.content}
+            className="chat-answer-paragraph"
+          />
+        );
+      })}
+    </div>
+  );
+}
+
 function ChatWorkspace({
   activeCase,
   messages,
@@ -66,7 +168,11 @@ function ChatWorkspace({
                 {/* <div className="chat-role">
                   {message.role === "user" ? "用户问题" : "系统回答"}
                 </div> */}
-                <FormattedText text={message.content} />
+                {message.role === "assistant" ? (
+                  <AssistantMessageBody content={message.content} />
+                ) : (
+                  <FormattedText text={message.content} />
+                )}
               </div>
               {message.note ? <div className="chat-note">{message.note}</div> : null}
             </div>
